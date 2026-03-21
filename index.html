@@ -1,11 +1,67 @@
-, Helvetica, Arial, sans-serif;
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Авито Видное — BETA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body.light {
+            --bg: linear-gradient(145deg, #f4f7fc 0%, #eef2f6 100%);
+            --card: rgba(255, 255, 255, 0.96);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --text: #1a2c3e;
+            --text-light: #5a6e8a;
+            --border: rgba(0, 0, 0, 0.05);
+            --input: #ffffff;
+            --chip: #f1f5f9;
+            --shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            --header-bg: rgba(255, 255, 255, 0.72);
+            --accent: #2c7da0;
+            --accent-light: #61a5c2;
+            --danger: #e63946;
+            --success: #2a9d8f;
+            --gold: #f4a261;
+            --star: #f4d03f;
+            --glass-blur: blur(20px);
+        }
+
+        body.dark {
+            --bg: linear-gradient(145deg, #0a0f1a 0%, #0f172a 100%);
+            --card: rgba(30, 41, 59, 0.96);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --text: #eef2ff;
+            --text-light: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --input: #1e293b;
+            --chip: #1e293b;
+            --shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
+            --header-bg: rgba(15, 23, 42, 0.72);
+            --accent: #3b82f6;
+            --accent-light: #60a5fa;
+            --danger: #f87171;
+            --success: #34d399;
+            --gold: #f59e0b;
+            --star: #fbbf24;
+            --glass-blur: blur(20px);
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             font-size: 14px;
             line-height: 1.5;
             min-height: 100vh;
             padding-bottom: 85px;
         }
 
-        /* Header with blur */
         .header {
             background: var(--header-bg);
             backdrop-filter: var(--glass-blur);
@@ -69,7 +125,6 @@
             color: white;
         }
 
-        /* Transparent bottom navigation (frosted glass) */
         .bottom-nav {
             position: fixed;
             bottom: 16px;
@@ -94,11 +149,7 @@
             transition: 0.2s;
             font-size: 10px;
         }
-        .nav-item.active { color: white; }
-        .nav-icon {
-            font-size: 24px;
-            font-weight: 400;
-        }
+        .nav-icon { font-size: 24px; }
 
         .menu {
             position: absolute;
@@ -192,11 +243,9 @@
             cursor: pointer;
             flex: 1;
             text-align: center;
-            transition: 0.2s;
         }
         .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
-        .btn-danger { background: var(--danger); color: white; }
 
         .search {
             padding: 14px 20px;
@@ -209,7 +258,6 @@
             padding: 8px 18px;
             border: 1px solid var(--border);
             margin-bottom: 14px;
-            transition: 0.2s;
         }
         .search-box:focus-within {
             border-color: var(--accent);
@@ -238,7 +286,6 @@
             white-space: nowrap;
             cursor: pointer;
             border: 1px solid var(--border);
-            transition: 0.2s;
         }
         .filter.active { background: var(--accent); color: white; border-color: var(--accent); }
 
@@ -278,23 +325,18 @@
             background: var(--chip);
         }
         .card-content { padding: 14px; }
-        /* New layout: price and category side by side with larger category */
         .price-cat-row {
             display: flex;
             justify-content: space-between;
             align-items: baseline;
             margin-bottom: 8px;
         }
-        .card-price { 
-            font-size: 22px; 
-            font-weight: 800; 
-            color: var(--accent);
-        }
-        .card-cat { 
-            background: var(--chip); 
-            padding: 4px 12px; 
-            border-radius: 40px; 
-            font-size: 12px; 
+        .card-price { font-size: 22px; font-weight: 800; color: var(--accent); }
+        .card-cat {
+            background: var(--chip);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 12px;
             font-weight: 600;
         }
         .separator {
@@ -302,26 +344,22 @@
             background: var(--border);
             margin: 12px 0;
         }
-        .card-title { 
-            font-size: 16px; 
-            font-weight: 700; 
+        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+        .card-desc {
+            color: var(--text-light);
+            font-size: 13px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
             margin-bottom: 8px;
         }
-        .card-desc { 
-            color: var(--text-light); 
-            font-size: 13px; 
-            display: -webkit-box; 
-            -webkit-line-clamp: 2; 
-            -webkit-box-orient: vertical; 
-            overflow: hidden; 
-            margin-bottom: 8px;
-        }
-        .card-meta { 
-            display: flex; 
-            gap: 14px; 
-            font-size: 11px; 
-            color: var(--text-light); 
-            margin-bottom: 10px; 
+        .card-meta {
+            display: flex;
+            gap: 14px;
+            font-size: 11px;
+            color: var(--text-light);
+            margin-bottom: 10px;
         }
         .card-footer {
             display: flex;
@@ -355,7 +393,6 @@
             cursor: pointer;
             color: var(--text-light);
             padding: 4px;
-            transition: 0.1s;
         }
         .icon.active { color: var(--danger); }
 
@@ -415,10 +452,6 @@
             color: var(--text);
             font-size: 14px;
         }
-        .form-group input.error, .form-group textarea.error {
-            border-color: var(--danger);
-            background: rgba(230,57,70,0.05);
-        }
         .photo-upload {
             border: 2px dashed var(--border);
             border-radius: 28px;
@@ -458,7 +491,7 @@
             transition: 0.2s;
         }
         .premium-switch.active::before { transform: translateX(22px); background: var(--gold); }
-        
+
         .list-item {
             display: flex;
             align-items: center;
@@ -479,7 +512,7 @@
         .list-item-title { font-weight: 700; margin-bottom: 4px; }
         .list-item-meta { font-size: 11px; color: var(--text-light); }
         .sold-badge { background: var(--danger); color: white; padding: 2px 10px; border-radius: 20px; font-size: 10px; margin-left: 8px; }
-        
+
         .chat-messages {
             height: 300px;
             overflow-y: auto;
@@ -520,7 +553,7 @@
             background: var(--input);
             color: var(--text);
         }
-        
+
         .toast {
             position: fixed;
             bottom: 100px;
@@ -549,7 +582,7 @@
             font-weight: 500;
         }
         .empty { text-align: center; padding: 40px 20px; color: var(--text-light); }
-        
+
         .confirm-overlay {
             position: fixed;
             top: 0;
@@ -619,11 +652,9 @@
         <div class="nav-item" onclick="toggleMenu()"><span class="nav-icon">👤</span><span>Профиль</span></div>
     </div>
 
-    <!-- Модалки -->
+    <!-- Модалки (сокращённые, но полные) -->
     <div class="modal" id="addModal"><div class="modal-content"><div class="modal-header"><h2 id="modalTitle">➕ Новое объявление</h2><button class="modal-close" onclick="closeAdd()">✖</button></div><input type="hidden" id="editItemId"><div class="form-group"><label>Название <span style="color:var(--danger)">*</span></label><input type="text" id="addTitle" placeholder="Например: iPhone 13"></div><div class="form-group"><label>Категория</label><select id="addCategory"></select></div><div class="form-group"><label>Цена (₽)</label><input type="number" id="addPrice" min="0" step="1" oninput="if(this.value<0) this.value=0"></div><div class="form-group"><label>Описание</label><textarea id="addDesc" rows="3" placeholder="Подробно опишите товар..."></textarea></div><div class="form-group"><div class="photo-upload" onclick="document.getElementById('photoInput').click()"><input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(event)"><span>📸 Загрузить фото</span><img id="photoPreview" class="photo-preview"></div></div><div class="premium-option"><span>⭐ Премиум продвижение (15 ⭐)</span><div class="premium-switch" id="premiumSwitch" onclick="togglePremium()"></div></div><input type="hidden" id="addPremium" value="0"><button class="btn btn-primary" onclick="submitItem()">Отправить на модерацию</button></div></div>
-    
     <div class="modal" id="starsModal"><div class="modal-content"><div class="modal-header"><h2>⭐ Telegram Stars</h2><button class="modal-close" onclick="closeStars()">✖</button></div><div style="font-size: 52px; text-align: center;" id="starsAmount">0</div><div class="buy-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:20px 0;"><button class="btn btn-primary" onclick="buyStars(50)">50 ⭐</button><button class="btn btn-primary" onclick="buyStars(100)">100 ⭐</button><button class="btn btn-primary" onclick="buyStars(200)">200 ⭐</button><button class="btn btn-primary" onclick="buyStars(500)">500 ⭐</button><div style="grid-column: span 2; display: flex; gap: 10px;"><input type="number" id="customStars" placeholder="Своё число" style="flex:1; padding: 12px; border-radius: 30px; border: 1px solid var(--border); background: var(--input); color: var(--text);"><button class="btn btn-outline" onclick="buyCustomStars()">Купить</button></div></div><div><h3>История</h3><div id="starsHistory"></div></div></div></div>
-    
     <div class="modal" id="favoritesModal"><div class="modal-content"><div class="modal-header"><h2>❤️ Избранное</h2><button class="modal-close" onclick="closeFavorites()">✖</button></div><div id="favoritesList"></div></div></div>
     <div class="modal" id="myItemsModal"><div class="modal-content"><div class="modal-header"><h2>📋 Мои объявления</h2><button class="modal-close" onclick="closeMyItems()">✖</button></div><div id="myItemsList"></div></div></div>
     <div class="modal" id="chatsModal"><div class="modal-content"><div class="modal-header"><h2>💬 Чаты</h2><button class="modal-close" onclick="closeChats()">✖</button></div><div id="chatsList"></div></div></div>
@@ -636,6 +667,11 @@
     <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-box" id="confirmBox"></div></div>
 
     <script>
+        // ==================== НАСТРОЙКИ (ЗАМЕНИТЕ НА СВОИ) ====================
+        const ADMIN_ID = 'ВАШ_ТЕЛЕГРАМ_ID';  // ← ВСТАВЬТЕ СВОЙ ID (узнайте у @userinfobot)
+        // ====================================================================
+
+        // Категории
         const CATEGORIES = [
             { id: 'electronics', name: '📱 Электроника' }, { id: 'furniture', name: '🪑 Мебель' },
             { id: 'clothes', name: '👕 Одежда' }, { id: 'shoes', name: '👟 Обувь' },
@@ -645,30 +681,43 @@
             { id: 'books', name: '📚 Книги' }, { id: 'other', name: '📦 Другое' }
         ];
 
+        // Telegram WebApp
         let tg = window.Telegram?.WebApp;
-        if (tg) { tg.expand(); tg.enableClosingConfirmation(); }
-        
-        let tgUser = tg?.initDataUnsafe?.user || null;
-        let userId = tgUser?.id ? tgUser.id.toString() : 'guest_' + Math.random().toString(36).substr(2, 9);
-        let userName = tgUser?.first_name || (tgUser?.username ? '@' + tgUser.username : 'Пользователь');
-        let userLogin = tgUser?.username ? '@' + tgUser.username : `user_${userId.slice(-6)}`;
+        if (!tg) {
+            document.body.innerHTML = '<div style="padding:20px;text-align:center;">❌ Ошибка: приложение не запущено через Telegram. Пожалуйста, откройте через кнопку бота.</div>';
+            throw new Error('WebApp not initialized');
+        }
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        let tgUser = tg.initDataUnsafe?.user || null;
+        if (!tgUser) {
+            document.body.innerHTML = '<div style="padding:20px;text-align:center;">❌ Ошибка: не удалось получить данные пользователя. Убедитесь, что домен добавлен в BotFather.</div>';
+            throw new Error('No user data');
+        }
+
+        let userId = tgUser.id.toString();
+        let userName = tgUser.first_name || (tgUser.username ? '@' + tgUser.username : 'Пользователь');
+        let userLogin = tgUser.username ? '@' + tgUser.username : `user_${userId.slice(-6)}`;
         let userAvatar = userName ? userName[0].toUpperCase() : '👤';
-        const ADMIN_ID = '5697184715';
+
         let isAdmin = (userId === ADMIN_ID);
-        
+
+        // База данных (localStorage)
         let users = JSON.parse(localStorage.getItem('avito_users') || '{}');
         let items = JSON.parse(localStorage.getItem('avito_items') || '[]');
         let favorites = JSON.parse(localStorage.getItem(`avito_fav_${userId}`) || '[]');
         let chats = JSON.parse(localStorage.getItem(`avito_chats_${userId}`) || '[]');
         let transactions = JSON.parse(localStorage.getItem(`avito_trans_${userId}`) || '[]');
         let reports = JSON.parse(localStorage.getItem('avito_reports') || '[]');
-        
+
         // Инициализация пользователя
         if (!users[userId]) {
             users[userId] = {
                 id: userId, name: userName, login: userLogin, avatar: userAvatar,
                 stars: 0, spent: 0, status: 'active', role: isAdmin ? 'admin' : 'user',
-                rating: 5.0, reviews: 0, bio: '', referrer: null, referrals: []
+                rating: 5.0, reviews: 0, bio: '', referrer: null, referrals: [],
+                registered: new Date().toLocaleDateString()
             };
             let urlParams = new URLSearchParams(window.location.search);
             let ref = urlParams.get('ref');
@@ -687,15 +736,16 @@
             users[userId].avatar = userAvatar;
             localStorage.setItem('avito_users', JSON.stringify(users));
         }
-        
+
         let currentUser = users[userId];
         isAdmin = (currentUser.role === 'admin');
-        
+
         if (currentUser.status === 'blocked') {
             document.body.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;"><div style="background:var(--card);border-radius:56px;padding:40px;text-align:center;"><div style="font-size:64px;">🚫</div><h2>Доступ заблокирован</h2><p>${currentUser.block_reason || 'Нарушение правил'}</p></div></div>`;
             throw new Error('Blocked');
         }
-        
+
+        // Сохранение данных
         function saveData() {
             localStorage.setItem('avito_items', JSON.stringify(items));
             localStorage.setItem(`avito_fav_${userId}`, JSON.stringify(favorites));
@@ -705,14 +755,14 @@
             localStorage.setItem('avito_users', JSON.stringify(users));
             localStorage.setItem('avito_reports', JSON.stringify(reports));
         }
-        
+
         function toast(msg) {
             let t = document.getElementById('toast');
             document.getElementById('toastMsg').innerText = msg;
             t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 2500);
         }
-        
+
         function updateUI() {
             document.getElementById('starsDisplay').innerHTML = `⭐ ${currentUser.stars}`;
             document.getElementById('menuStars').innerText = currentUser.stars;
@@ -731,23 +781,28 @@
             document.getElementById('menuReferrals').innerText = currentUser.referrals?.length || 0;
             document.getElementById('menuPending').innerText = items.filter(i => i.moderation === 'pending').length;
         }
-        
-        // Stars purchase with invoice
-        function buyStars(amount, onSuccess) {
-            if (!tg) { toast('❌ Telegram WebApp не найден'); return; }
-            tg.sendInvoice(`Покупка ${amount} Stars`, `Пополнение баланса`, `stars_${amount}_${Date.now()}`, "", "XTR", [{ label: `${amount} Stars`, amount: amount }]);
+
+        // Покупка Stars
+        function buyStars(amount) {
+            tg.sendInvoice(
+                `Покупка ${amount} Stars`,
+                `Пополнение баланса для продвижения в Авито Видное`,
+                `stars_${amount}_${Date.now()}`,
+                "",
+                "XTR",
+                [{ label: `${amount} Stars`, amount: amount }]
+            );
             tg.onEvent('invoiceClosed', (invoice) => {
                 if (invoice.status === 'paid') {
                     currentUser.stars += amount;
                     transactions.unshift({ id: Date.now(), amount: amount, desc: `Покупка ${amount} ⭐`, date: new Date().toLocaleDateString() });
-                    saveData(); updateUI(); toast(`✅ +${amount} ⭐`);
-                    if (onSuccess) onSuccess();
+                    saveData(); updateUI(); toast(`✅ +${amount} ⭐`); closeStars();
                 } else toast('❌ Оплата отменена');
             });
         }
-        
+
         function buyCustomStars() { let a = parseInt(document.getElementById('customStars').value); if(a>0 && a<=5000) buyStars(a); else toast('❌ Введите число от 1 до 5000'); }
-        
+
         function showStars() {
             document.getElementById('starsAmount').innerText = currentUser.stars;
             let hist = transactions.slice(0,10).map(t => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:8px 0;"><span>${t.desc}<br><small>${t.date}</small></span><span>${t.amount} ⭐</span></div>`).join('');
@@ -755,16 +810,17 @@
             document.getElementById('starsModal').classList.add('active'); closeMenu();
         }
         function closeStars() { document.getElementById('starsModal').classList.remove('active'); }
-        
+
+        // Рендер
         let currentCat = 'all', currentSearch = '';
         function getCatName(catId) { let cat = CATEGORIES.find(c => c.id === catId); return cat ? cat.name : catId; }
-        
+
         function renderFilters() {
             const container = document.getElementById('filterRow');
             container.innerHTML = '<span class="filter active" data-cat="all">🌟 Все</span>' + CATEGORIES.map(c => `<span class="filter" data-cat="${c.id}">${c.name}</span>`).join('');
             document.querySelectorAll('.filter').forEach(el => el.addEventListener('click', () => filterCat(el.dataset.cat)));
         }
-        
+
         function render() {
             let feed = document.getElementById('feed');
             let filtered = items.filter(i => i.moderation === 'approved' && i.status !== 'sold' && (currentCat === 'all' || i.category === currentCat) && (!currentSearch || i.title.toLowerCase().includes(currentSearch) || i.description.toLowerCase().includes(currentSearch)));
@@ -795,7 +851,7 @@
                 </div>
             `).join('');
         }
-        
+
         function filterCat(cat) {
             currentCat = cat;
             document.querySelectorAll('.filter').forEach(el => {
@@ -803,45 +859,38 @@
             });
             render();
         }
-        
+
         function doSearch() { currentSearch = document.getElementById('searchInput').value.toLowerCase(); render(); }
         function toggleFav(id) { let idx = favorites.indexOf(id); idx===-1?favorites.push(id):favorites.splice(idx,1); saveData(); render(); toast(idx===-1?'✅ В избранном':'❌ Удалено'); }
-        
+
         let currentPhotoData = null, editingItemId = null;
         function handlePhoto(e) {
             let file = e.target.files[0];
             if(file) { let r = new FileReader(); r.onload = ev => { currentPhotoData = ev.target.result; document.getElementById('photoPreview').src = ev.target.result; document.getElementById('photoPreview').classList.add('show'); }; r.readAsDataURL(file); }
         }
-        
-        // Premium toggle with direct payment if insufficient stars
+
         function togglePremium() {
             let sw = document.getElementById('premiumSwitch');
             let isActive = sw.classList.contains('active');
             if (!isActive) {
                 if (currentUser.stars >= 15) {
-                    // просто активируем
                     sw.classList.add('active');
                     document.getElementById('addPremium').value = '1';
                 } else {
-                    // недостаточно — предлагаем оплатить 15 звёзд
                     showConfirm('Недостаточно Stars для премиума. Пополнить на 15 ⭐?', 'Оплатить 15 ⭐', 'Отмена', () => {
-                        // покупаем 15 звёзд и после успеха активируем переключатель
                         buyStars(15, () => {
-                            // после успешной оплаты активируем премиум
-                            let sw2 = document.getElementById('premiumSwitch');
-                            sw2.classList.add('active');
+                            sw.classList.add('active');
                             document.getElementById('addPremium').value = '1';
                             toast('✅ Баланс пополнен, премиум активирован!');
                         });
                     }, () => {});
                 }
             } else {
-                // выключаем премиум
                 sw.classList.remove('active');
                 document.getElementById('addPremium').value = '0';
             }
         }
-        
+
         function showConfirm(msg, okText, cancelText, onOk, onCancel) {
             let overlay = document.getElementById('confirmOverlay');
             let box = document.getElementById('confirmBox');
@@ -853,7 +902,7 @@
             overlay.style.display = 'flex';
         }
         function closeConfirm() { document.getElementById('confirmOverlay').style.display = 'none'; }
-        
+
         function openAdd(itemId=null) {
             editingItemId = itemId;
             document.getElementById('addCategory').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
@@ -881,17 +930,10 @@
             document.getElementById('addModal').classList.add('active'); closeMenu();
         }
         function closeAdd() { document.getElementById('addModal').classList.remove('active'); editingItemId = null; }
-        
-        function validateForm() {
-            let isValid = true;
-            let title = document.getElementById('addTitle');
-            if(!title.value.trim()) { title.classList.add('error'); isValid = false; toast('❌ Заполните название'); } else title.classList.remove('error');
-            return isValid;
-        }
-        
+
         function submitItem() {
-            if(!validateForm()) return;
             let title = document.getElementById('addTitle').value, cat = document.getElementById('addCategory').value, price = parseInt(document.getElementById('addPrice').value)||0, desc = document.getElementById('addDesc').value, premium = document.getElementById('addPremium').value === '1';
+            if(!title || !desc) { toast('❌ Заполните название и описание'); return; }
             if(price < 0) price = 0;
             if(premium && currentUser.stars < 15) { toast('❌ Недостаточно ⭐ для премиума'); return; }
             if(editingItemId) {
@@ -911,7 +953,7 @@
                 saveData(); closeAdd(); render(); updateUI(); toast('✅ Отправлено на модерацию');
             }
         }
-        
+
         function openDetail(id) {
             let item = items.find(i=>i.id===id);
             if(!item) return;
@@ -924,7 +966,7 @@
         function openEditItem(id) { closeDetail(); openAdd(id); }
         function closeDetail() { document.getElementById('detailModal').classList.remove('active'); }
         function showSeller(id) { toast('Профиль продавца: ' + (users[id]?.name || 'Пользователь')); }
-        
+
         function showFavorites() {
             let favItems = items.filter(i => favorites.includes(i.id));
             let html = favItems.map(i => `<div class="list-item" onclick="${i.status!=='sold'?'openDetail('+i.id+')':''}"><img class="list-item-img" src="${i.photo}"><div class="list-item-info"><div class="list-item-title">${i.title} ${i.status==='sold'?'<span class="sold-badge">ПРОДАНО</span>':''}</div><div class="list-item-meta">${i.price.toLocaleString()} ₽</div></div><button class="icon active" onclick="event.stopPropagation(); toggleFav(${i.id}); showFavorites();">❤️</button></div>`).join('');
@@ -932,7 +974,7 @@
             document.getElementById('favoritesModal').classList.add('active');
         }
         function closeFavorites() { document.getElementById('favoritesModal').classList.remove('active'); }
-        
+
         function showMyItems() {
             let my = items.filter(i=>i.sellerId===userId);
             let html = my.map(i=>`<div class="list-item" onclick="openDetail(${i.id})"><img class="list-item-img" src="${i.photo}"><div class="list-item-info"><div class="list-item-title">${i.title} ${i.premium?'⭐':''}</div><div class="list-item-meta">${i.price.toLocaleString()} ₽ • ${i.moderation==='pending'?'⏳ Модерация':i.moderation==='rejected'?'❌ Отклонено':i.status==='sold'?'💰 Продано':'✅ Активно'}</div></div><div>👁️ ${i.views}</div></div>`).join('');
@@ -940,7 +982,7 @@
             document.getElementById('myItemsModal').classList.add('active');
         }
         function closeMyItems() { document.getElementById('myItemsModal').classList.remove('active'); }
-        
+
         let currentChat = null;
         function openChat(sellerId) {
             let seller = users[sellerId];
@@ -982,7 +1024,7 @@
             document.getElementById('chatsModal').classList.add('active');
         }
         function closeChats() { document.getElementById('chatsModal').classList.remove('active'); }
-        
+
         function showReferrals() {
             let rc = currentUser.referrals?.length||0;
             document.getElementById('referralCount').innerText = rc;
@@ -995,7 +1037,8 @@
             document.getElementById('referralsModal').classList.add('active');
         }
         function closeReferrals() { document.getElementById('referralsModal').classList.remove('active'); }
-        
+
+        // Админка
         function showAdmin() {
             if(!isAdmin) { toast('⛔ Доступ запрещён'); return; }
             let totalStars = Object.values(users).reduce((s,u)=>s+u.stars,0);
@@ -1012,29 +1055,23 @@
         function blockUser(uid) { let u=users[uid]; if(u && u.id!==userId){u.status='blocked'; u.block_reason='Нарушение правил'; saveData(); showAdmin(); toast(`🔨 ${u.name} заблокирован`);} }
         function addStarsToUser(uid) { let amount = prompt('Сколько Stars начислить?'); if(amount && amount>0){users[uid].stars += parseInt(amount); saveData(); showAdmin(); toast(`✅ Начислено ${amount} ⭐`);} }
         function resolveReport(id) { reports = reports.filter(r=>r.id!==id); localStorage.setItem('avito_reports', JSON.stringify(reports)); showAdmin(); toast('✅ Жалоба обработана'); }
-        
+
         function toggleTheme() { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark')?'dark':'light'); }
         function toggleMenu() { document.getElementById('menu').classList.toggle('show'); }
         function closeMenu() { document.getElementById('menu').classList.remove('show'); }
         function hideToast() { document.getElementById('toast').classList.remove('show'); }
-        
-        // Удаляем все тестовые товары при загрузке
-        if (items.length > 0) {
-            // Если есть товары, но они могут быть старыми тестовыми — удаляем всё
-            items = [];
-            saveData();
-        }
-        
+
+        // Инициализация (удаляем тестовые товары)
+        if(items.length > 0) items = [];
         if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
-        
+
         window.onload = () => {
             renderFilters();
             render();
             updateUI();
             document.getElementById('addCategory').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
             document.addEventListener('click', (e) => { let m = document.getElementById('menu'); if(m && !m.contains(e.target) && !e.target.closest('.profile') && !e.target.closest('.nav-item')) m.classList.remove('show'); });
-            if(tg) tg.ready();
-            toast('👋 Добро пожаловать!');
+            toast(`👋 Добро пожаловать, ${currentUser.name}!`);
         };
     </script>
 </body>
