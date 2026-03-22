@@ -448,6 +448,16 @@
             background: var(--input);
             color: var(--text);
         }
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .item-actions .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            width: auto;
+        }
     </style>
 </head>
 <body>
@@ -757,8 +767,10 @@
     }
 
     // ---------- Системные уведомления ----------
-    function sendSystemNotification(message) {
-        let sysChat = chats.find(c => c.with === SYSTEM_USER_ID);
+    function sendSystemNotification(userId, message) {
+        // Находим чат этого пользователя с системой
+        let userChats = JSON.parse(localStorage.getItem(`avito_chats_${userId}`) || '[]');
+        let sysChat = userChats.find(c => c.with === SYSTEM_USER_ID);
         if (!sysChat) {
             sysChat = {
                 id: Date.now(),
@@ -767,17 +779,17 @@
                 withAvatar: SYSTEM_AVATAR,
                 messages: []
             };
-            chats.push(sysChat);
+            userChats.push(sysChat);
         }
         sysChat.messages.push({
             text: message,
             time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
             type: 'system'
         });
-        saveData();
+        localStorage.setItem(`avito_chats_${userId}`, JSON.stringify(userChats));
     }
 
-    // ---------- Stars (демо-режим, так как реальная оплата не настроена) ----------
+    // ---------- Stars (демо-режим) ----------
     function buyStars(amount) {
         if (confirm(`💰 Демо-режим: начислить ${amount} ⭐? (реальная оплата будет позже)`)) {
             currentUser.stars += amount;
@@ -804,6 +816,22 @@
     }
     function closeStars() { document.getElementById('starsModal').classList.remove('active'); }
 
+    // ---------- Подсчёт лайков (глобальный) ----------
+    function recalcLikes() {
+        // Для каждого товара пересчитываем количество лайков из всех избранных
+        for (let item of items) {
+            let count = 0;
+            // Получаем все избранные из localStorage для всех пользователей
+            // Для простоты будем перебирать всех пользователей в users
+            for (let uid in users) {
+                let favs = JSON.parse(localStorage.getItem(`avito_fav_${uid}`) || '[]');
+                if (favs.includes(item.id)) count++;
+            }
+            item.likes = count;
+        }
+        saveData();
+    }
+
     // ---------- Рендер ленты ----------
     let currentCat = 'all', currentSearch = '';
     function render() {
@@ -822,7 +850,7 @@
                 <div class="card-content">
                     <div class="card-price">${i.price.toLocaleString()} ₽</div>
                     <div class="card-title">${i.title}</div>
-                    <div class="card-meta">🕐 ${i.time}</div>
+                    <div class="card-meta">👁️ ${i.views || 0} ❤️ ${i.likes || 0} 🕐 ${i.time}</div>
                 </div>
             </div>
         `).join('') || '<div style="grid-column:1/3; text-align:center; padding:20px;">Тут пока пусто</div>';
@@ -875,13 +903,45 @@
         }
     }
 
-    // ---------- Добавление товара ----------
-    function openAdd() {
+    // ---------- Добавление/редактирование товара ----------
+    let editingItemId = null;
+    function openAdd(itemId = null) {
+        editingItemId = itemId;
         document.getElementById('addModal').classList.add('active');
         document.getElementById('addCategory').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        if (itemId) {
+            const item = items.find(i => i.id === itemId);
+            if (item) {
+                document.getElementById('modalTitle').innerText = '✏️ Редактировать';
+                document.getElementById('addTitle').value = item.title;
+                document.getElementById('addCategory').value = item.category;
+                document.getElementById('addPrice').value = item.price;
+                document.getElementById('addDesc').value = item.description;
+                if (item.premium) {
+                    document.getElementById('premiumSwitch').style.background = "var(--success)";
+                    document.getElementById('premiumSwitch').querySelector('div').style.left = "22px";
+                    document.getElementById('addPremium').value = "1";
+                }
+                if (item.photo && !item.photo.includes('placeholder')) {
+                    document.getElementById('photoPreview').src = item.photo;
+                    document.getElementById('photoPreview').classList.add('show');
+                    currentPhotoData = item.photo;
+                }
+            }
+        } else {
+            document.getElementById('modalTitle').innerText = '➕ Новое объявление';
+            document.getElementById('addTitle').value = '';
+            document.getElementById('addPrice').value = '';
+            document.getElementById('addDesc').value = '';
+            document.getElementById('premiumSwitch').style.background = "#ccc";
+            document.getElementById('premiumSwitch').querySelector('div').style.left = "2px";
+            document.getElementById('addPremium').value = "0";
+            document.getElementById('photoPreview').classList.remove('show');
+            currentPhotoData = null;
+        }
         closeMenu();
     }
-    function closeAdd() { document.getElementById('addModal').classList.remove('active'); }
+    function closeAdd() { document.getElementById('addModal').classList.remove('active'); editingItemId = null; }
 
     function submitItem() {
         const title = document.getElementById('addTitle').value.trim();
@@ -897,28 +957,41 @@
         if (isPremium && currentUser.stars < 15) { toast('❌ Недостаточно Stars'); return; }
         if (isPremium) currentUser.stars -= 15;
 
+        if (editingItemId) {
+            // Удаляем старую версию
+            const oldItem = items.find(i => i.id === editingItemId);
+            if (oldItem && oldItem.premium && !isPremium) {
+                // Если снимаем премиум, возвращаем звёзды (не возвращаем, чтобы не было злоупотреблений, но можно)
+                // Здесь по желанию
+            }
+            items = items.filter(i => i.id !== editingItemId);
+        }
+
         items.unshift({
-            id: Date.now(),
+            id: editingItemId || Date.now(),
             title,
             price,
             category: cat,
             description: desc,
-            photo: currentPhotoData || 'https://via.placeholder.com/200?text=Нет+фото',
+            photo: currentPhotoData || (editingItemId ? items.find(i => i.id === editingItemId)?.photo : 'https://via.placeholder.com/200?text=Нет+фото'),
             sellerId: userId,
             sellerName: currentUser.name,
             premium: isPremium,
-            moderation: 'pending',
+            moderation: 'pending',   // при редактировании тоже на модерацию
             time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-            views: 0
+            views: 0,
+            likes: 0
         });
 
         saveData();
+        recalcLikes();   // обновить лайки
         closeAdd();
         render();
         updateUI();
         toast('✅ Отправлено на модерацию');
         currentPhotoData = null;
         document.getElementById('photoPreview').classList.remove('show');
+        editingItemId = null;
     }
 
     // ---------- Детали товара ----------
@@ -934,6 +1007,11 @@
             <h1 style="margin:8px 0;">${item.price.toLocaleString()} ₽</h1>
             <h2>${item.title}</h2>
             <p style="margin:12px 0; color:var(--text-light);">${item.description}</p>
+            <div style="display:flex; gap:8px; margin:12px 0;">
+                <span>👁️ ${item.views || 0}</span>
+                <span>❤️ ${item.likes || 0}</span>
+                <span>🕐 ${item.time}</span>
+            </div>
             <hr style="border:0; border-top:1px solid var(--border); margin:16px 0;">
             <div style="display:flex; align-items:center; gap:10px;">
                 <div class="profile">${users[item.sellerId]?.avatar || '👤'}</div>
@@ -942,6 +1020,7 @@
             <div style="margin-top:20px; display:flex; gap:12px;">
                 ${item.sellerId !== userId ? `<button class="btn btn-primary" onclick="openChat('${item.sellerId}')">💬 Написать</button>` : ''}
                 <button class="btn btn-outline" id="favBtn-${id}" onclick="toggleFav(${id})">${isFav ? '❤️ В избранном' : '🤍 В избранное'}</button>
+                ${item.sellerId === userId && item.moderation === 'approved' ? `<button class="btn btn-outline" onclick="openAdd(${id})">✏️ Редактировать</button>` : ''}
             </div>
         `;
         document.getElementById('detailContent').innerHTML = content;
@@ -954,6 +1033,7 @@
         if (idx === -1) favorites.push(id);
         else favorites.splice(idx,1);
         saveData();
+        recalcLikes();   // обновить лайки
         updateUI();
         toast(idx === -1 ? '✅ Добавлено в избранное' : '❌ Удалено');
         render();
@@ -970,7 +1050,7 @@
                 <div>
                     <div style="font-weight:700;">${i.title}</div>
                     <div>${i.price.toLocaleString()} ₽</div>
-                    <div style="font-size:11px; color:var(--text-light);">${i.time}</div>
+                    <div style="font-size:11px; color:var(--text-light);">👁️ ${i.views || 0} ❤️ ${i.likes || 0}</div>
                 </div>
                 <button class="btn btn-outline" style="margin-left:auto; padding:4px 12px;" onclick="event.stopPropagation(); toggleFav(${i.id}); showFavorites();">Удалить</button>
             </div>
@@ -1080,17 +1160,27 @@
     }
     function closeReferrals() { document.getElementById('referralsModal').classList.remove('active'); }
 
-    // ---------- Мои товары ----------
+    // ---------- Мои товары (с удалением, просмотрами, лайками) ----------
     function showMyItems() {
         const my = items.filter(i => i.sellerId === userId);
         const html = my.map(i => `
-            <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px; display:flex; gap:12px; cursor:pointer;" onclick="openDetail(${i.id})">
-                <img src="${i.photo}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
-                <div>
-                    <div style="font-weight:700;">${i.title}</div>
-                    <div>${i.price.toLocaleString()} ₽</div>
-                    <div style="font-size:11px; color:var(--text-light);">Статус: ${i.moderation === 'pending' ? '⏳ На модерации' : i.moderation === 'approved' ? '✅ Активен' : '❌ Отклонён'}</div>
-                    ${i.rejectReason ? `<div style="font-size:11px; color:var(--danger);">Причина: ${i.rejectReason}</div>` : ''}
+            <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px;">
+                <div style="display:flex; gap:12px;">
+                    <img src="${i.photo}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
+                    <div style="flex:1;">
+                        <div style="font-weight:700;">${i.title}</div>
+                        <div>${i.price.toLocaleString()} ₽</div>
+                        <div style="font-size:11px; color:var(--text-light);">
+                            👁️ ${i.views || 0} ❤️ ${i.likes || 0} | ${i.time}
+                        </div>
+                        <div style="font-size:11px;">Статус: ${i.moderation === 'pending' ? '⏳ На модерации' : i.moderation === 'approved' ? '✅ Активен' : '❌ Отклонён'}</div>
+                        ${i.rejectReason ? `<div style="font-size:11px; color:var(--danger);">Причина: ${i.rejectReason}</div>` : ''}
+                    </div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-outline" style="flex:1;" onclick="openDetail(${i.id})">🔍 Подробнее</button>
+                    <button class="btn btn-outline" style="flex:1;" onclick="openAdd(${i.id})">✏️ Редактировать</button>
+                    <button class="btn btn-danger" style="flex:1;" onclick="deleteItem(${i.id})">🗑️ Удалить</button>
                 </div>
             </div>
         `).join('');
@@ -1099,6 +1189,23 @@
         closeMenu();
     }
     function closeMyItems() { document.getElementById('myItemsModal').classList.remove('active'); }
+
+    function deleteItem(id) {
+        if (confirm('Удалить товар безвозвратно?')) {
+            const item = items.find(i => i.id === id);
+            if (item && item.premium) {
+                // Возвращаем звёзды при удалении премиум-товара, который не был продан
+                currentUser.stars += 15;
+                sendSystemNotification(userId, `💰 Вам возвращено 15 ⭐ за удаление премиум-товара "${item.title}"`);
+            }
+            items = items.filter(i => i.id !== id);
+            saveData();
+            recalcLikes();
+            render();
+            showMyItems(); // обновляем список
+            toast('✅ Товар удалён');
+        }
+    }
 
     // ---------- Админка ----------
     let currentModerateItem = null;
@@ -1165,7 +1272,7 @@
         closeModerate();
         showAdmin();
         toast('✅ Товар одобрен');
-        sendSystemNotification(`✅ Ваш товар "${currentModerateItem.title}" одобрен и опубликован!`);
+        sendSystemNotification(currentModerateItem.sellerId, `✅ Ваш товар "${currentModerateItem.title}" одобрен и опубликован!`);
     }
 
     function rejectItemWithReason() {
@@ -1193,7 +1300,7 @@
         closeModerate();
         showAdmin();
         toast('❌ Товар отклонён');
-        sendSystemNotification(`❌ Ваш товар "${currentModerateItem.title}" отклонён.\nПричина: ${reason}`);
+        sendSystemNotification(currentModerateItem.sellerId, `❌ Ваш товар "${currentModerateItem.title}" отклонён.\nПричина: ${reason}`);
     }
 
     // Блокировка пользователя
@@ -1228,12 +1335,12 @@
             u.status = 'blocked';
             u.blockReason = reason;
             toast(`🔨 ${u.name} заблокирован`);
-            sendSystemNotification(`🚫 Вы заблокированы администратором.\nПричина: ${reason}\nПо вопросам: @avito_vidnoe_support`);
+            sendSystemNotification(u.id, `🚫 Вы заблокированы администратором.\nПричина: ${reason}\nПо вопросам: @avito_vidnoe_support`);
         } else {
             u.status = 'active';
             u.blockReason = '';
             toast(`✅ ${u.name} разблокирован`);
-            sendSystemNotification(`✅ Ваша блокировка снята. Теперь вы снова можете пользоваться платформой.`);
+            sendSystemNotification(u.id, `✅ Ваша блокировка снята. Теперь вы снова можете пользоваться платформой.`);
         }
         saveData();
         closeBlock();
@@ -1255,6 +1362,7 @@
             CATEGORIES.map(c => `<span class="filter" data-cat="${c.id}" onclick="filterCat('${c.id}')">${c.name}</span>`).join('');
     }
 
+    recalcLikes();  // один раз при старте
     if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
 
     window.onload = () => {
