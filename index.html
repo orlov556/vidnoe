@@ -3,522 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Авито Видное — BETA</title>
+    <title>Авито Видное — Marketplace</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --bg: #f4f4f7;
+            --card: #ffffff;
+            --text: #2c2d2e;
+            --text-light: #828282;
+            --accent: #007aff;
+            --accent-soft: #e5f1ff;
+            --border: #e0e0e0;
+            --gold: #ffaa00;
+            --danger: #ff3b30;
+            --success: #34c759;
+            --chip: #f0f0f2;
+        }
+        body.dark {
+            --bg: #1a1a1a;
+            --card: #2c2c2e;
+            --text: #ffffff;
+            --text-light: #a0a0a0;
+            --accent: #0a84ff;
+            --accent-soft: #1c2c3e;
+            --border: #3a3a3c;
+            --chip: #3a3a3c;
+        }
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-
-        body.light {
-            --bg: linear-gradient(145deg, #f4f7fc 0%, #eef2f6 100%);
-            --card: rgba(255, 255, 255, 0.96);
-            --card-border: rgba(0, 0, 0, 0.08);
-            --text: #1a2c3e;
-            --text-light: #5a6e8a;
-            --border: rgba(0, 0, 0, 0.05);
-            --input: #ffffff;
-            --chip: #f1f5f9;
-            --shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
-            --header-bg: rgba(255, 255, 255, 0.72);
-            --accent: #2c7da0;
-            --accent-light: #61a5c2;
-            --danger: #e63946;
-            --success: #2a9d8f;
-            --gold: #f4a261;
-            --star: #f4d03f;
-            --glass-blur: blur(20px);
-        }
-
-        body.dark {
-            --bg: linear-gradient(145deg, #0a0f1a 0%, #0f172a 100%);
-            --card: rgba(30, 41, 59, 0.96);
-            --card-border: rgba(255, 255, 255, 0.06);
-            --text: #eef2ff;
-            --text-light: #94a3b8;
-            --border: rgba(255, 255, 255, 0.08);
-            --input: #1e293b;
-            --chip: #1e293b;
-            --shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
-            --header-bg: rgba(15, 23, 42, 0.72);
-            --accent: #3b82f6;
-            --accent-light: #60a5fa;
-            --danger: #f87171;
-            --success: #34d399;
-            --gold: #f59e0b;
-            --star: #fbbf24;
-            --glass-blur: blur(20px);
-        }
-
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            font-size: 14px;
-            line-height: 1.5;
-            min-height: 100vh;
-            padding-bottom: 85px;
+            padding-bottom: 80px;
+            transition: background 0.3s;
         }
-
-        .header {
-            background: var(--header-bg);
-            backdrop-filter: var(--glass-blur);
-            padding: 14px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        header {
             position: sticky;
             top: 0;
-            z-index: 100;
-            border-bottom: 1px solid var(--card-border);
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            background: var(--card);
+            padding: 12px 16px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
         }
-        .logo span {
-            font-size: 12px;
-            background: var(--accent);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 20px;
-            -webkit-text-fill-color: white;
+        .search-container {
+            flex: 1;
+            position: relative;
         }
-        .admin-tag {
-            background: var(--gold);
-            color: #0f172a;
-            font-size: 10px;
-            padding: 2px 10px;
-            border-radius: 40px;
-            margin-left: 8px;
+        .search-container input {
+            width: 100%;
+            padding: 10px 15px 10px 35px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
         }
-        .right { display: flex; align-items: center; gap: 12px; }
-        .stars {
-            background: linear-gradient(135deg, var(--star), var(--gold));
-            color: #1e293b;
-            padding: 8px 16px;
-            border-radius: 80px;
-            font-weight: 700;
+        .search-container::before {
+            content: '🔍';
+            position: absolute;
+            left: 10px;
+            top: 8px;
             font-size: 14px;
-            cursor: pointer;
         }
         .profile {
-            width: 46px;
-            height: 46px;
-            border-radius: 30px;
-            background: linear-gradient(145deg, var(--accent), var(--accent-light));
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
-            font-size: 20px;
+            font-weight: bold;
             cursor: pointer;
-            color: white;
-        }
-
-        .bottom-nav {
-            position: fixed;
-            bottom: 16px;
-            left: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(20px);
-            border-radius: 60px;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 20px;
-            z-index: 100;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            color: rgba(255, 255, 255, 0.8);
-            transition: 0.2s;
-            font-size: 10px;
-        }
-        .nav-icon { font-size: 24px; }
-
-        .menu {
-            position: absolute;
-            top: 80px;
-            right: 16px;
-            background: var(--card);
-            backdrop-filter: var(--glass-blur);
-            border-radius: 32px;
-            box-shadow: var(--shadow);
-            width: 280px;
-            z-index: 200;
-            border: 1px solid var(--card-border);
             overflow: hidden;
+        }
+        .profile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #filterRow {
+            display: flex;
+            overflow-x: auto;
+            padding: 12px 16px;
+            gap: 8px;
+            scrollbar-width: none;
+        }
+        #filterRow::-webkit-scrollbar {
             display: none;
         }
-        .menu.show { display: block; }
-        .menu-header {
-            padding: 18px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .menu-avatar {
-            width: 52px;
-            height: 52px;
-            background: white;
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 22px;
-            color: var(--accent);
-        }
-        .menu-item {
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border);
-            color: var(--text);
-        }
-        .menu-item:hover { background: var(--chip); }
-        .menu-badge {
-            margin-left: auto;
-            background: var(--accent);
-            color: white;
-            padding: 2px 12px;
-            border-radius: 40px;
-            font-size: 11px;
-        }
-        .theme-switch {
-            width: 48px;
-            height: 24px;
-            background: var(--chip);
-            border-radius: 40px;
-            position: relative;
-            cursor: pointer;
-            border: 1px solid var(--border);
-        }
-        .theme-switch::before {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            left: 2px;
-            top: 1px;
-            background: var(--accent);
-            border-radius: 50%;
-            transition: 0.2s;
-        }
-        .dark .theme-switch::before { transform: translateX(22px); background: var(--star); }
-
-        .actions {
-            padding: 14px 20px;
-            display: flex;
-            gap: 12px;
-            background: var(--card);
-            backdrop-filter: var(--glass-blur);
-            border-bottom: 1px solid var(--card-border);
-        }
-        .btn {
-            padding: 12px 20px;
-            border-radius: 80px;
-            border: none;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            flex: 1;
-            text-align: center;
-        }
-        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
-
-        .search {
-            padding: 14px 20px;
-            background: var(--card);
-        }
-        .search-box {
-            display: flex;
-            background: var(--input);
-            border-radius: 80px;
-            padding: 8px 18px;
-            border: 1px solid var(--border);
-            margin-bottom: 14px;
-        }
-        .search-box:focus-within {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(44,125,160,0.2);
-        }
-        .search-box input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            padding: 8px 0;
-            outline: none;
-            color: var(--text);
-        }
-        .filter-row {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-        }
         .filter {
-            background: var(--chip);
-            padding: 8px 18px;
-            border-radius: 80px;
-            font-size: 13px;
-            font-weight: 500;
+            padding: 8px 16px;
+            background: var(--card);
+            border-radius: 20px;
+            font-size: 14px;
             white-space: nowrap;
-            cursor: pointer;
             border: 1px solid var(--border);
+            cursor: pointer;
         }
-        .filter.active { background: var(--accent); color: white; border-color: var(--accent); }
-
+        .filter.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
         .feed {
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
+            padding: 0 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
         .card {
             background: var(--card);
-            backdrop-filter: var(--glass-blur);
-            border-radius: 32px;
-            border: 1px solid var(--card-border);
+            border-radius: 16px;
             overflow: hidden;
-            cursor: pointer;
-            box-shadow: var(--shadow);
             position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            cursor: pointer;
         }
-        .card.premium { border: 2px solid var(--gold); }
+        .card.premium {
+            border: 2px solid var(--gold);
+        }
         .premium-badge {
             position: absolute;
-            top: 14px;
-            left: 14px;
-            background: linear-gradient(135deg, var(--gold), #e67e22);
-            color: #000;
-            padding: 4px 14px;
-            border-radius: 60px;
+            top: 8px;
+            left: 8px;
+            background: var(--gold);
+            color: white;
             font-size: 10px;
             font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
             z-index: 2;
         }
         .card-img {
             width: 100%;
-            height: 180px;
+            height: 140px;
             object-fit: cover;
             background: var(--chip);
         }
-        .card-content { padding: 14px; }
-        .price-cat-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 8px;
+        .card-content {
+            padding: 10px;
         }
-        .card-price { font-size: 22px; font-weight: 800; color: var(--accent); }
-        .card-cat {
-            background: var(--chip);
-            padding: 4px 12px;
-            border-radius: 40px;
-            font-size: 12px;
-            font-weight: 600;
+        .card-price {
+            font-size: 17px;
+            font-weight: 800;
+            margin-bottom: 4px;
+            color: var(--text);
         }
-        .separator {
-            height: 1px;
-            background: var(--border);
-            margin: 12px 0;
-        }
-        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-        .card-desc {
-            color: var(--text-light);
-            font-size: 13px;
+        .card-title {
+            font-size: 14px;
+            color: var(--text);
+            margin-bottom: 4px;
+            height: 34px;
+            overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
-            overflow: hidden;
-            margin-bottom: 8px;
         }
         .card-meta {
-            display: flex;
-            gap: 14px;
             font-size: 11px;
             color: var(--text-light);
-            margin-bottom: 10px;
         }
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 10px;
-            border-top: 1px solid var(--border);
-        }
-        .seller {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-        .seller-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 30px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: var(--accent);
+            color: white;
+            border-radius: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
-            font-size: 13px;
-            color: white;
-        }
-        .icon {
-            background: none;
-            border: none;
-            font-size: 22px;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,122,255,0.4);
+            z-index: 99;
             cursor: pointer;
-            color: var(--text-light);
-            padding: 4px;
         }
-        .icon.active { color: var(--danger); }
-
-        .modal {
-            display: none;
+        .menu {
             position: fixed;
             top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal.active { display: flex; }
-        .modal-content {
+            right: -100%;
+            width: 85%;
+            height: 100%;
             background: var(--card);
-            backdrop-filter: var(--glass-blur);
-            border-radius: 48px;
+            z-index: 1000;
+            transition: 0.3s;
             padding: 24px;
-            width: 100%;
-            max-width: 480px;
-            max-height: 85vh;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
             overflow-y: auto;
-            border: 1px solid var(--card-border);
+        }
+        .menu.show {
+            right: 0;
+        }
+        .menu-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+        }
+        .modal.active {
+            display: flex;
         }
         .modal-header {
+            padding: 16px;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
         }
-        .modal-close {
-            background: var(--chip);
+        .modal-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .btn {
+            padding: 14px;
+            border-radius: 14px;
             border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 30px;
-            font-size: 18px;
+            font-weight: 700;
             cursor: pointer;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            text-align: center;
         }
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--text-light); }
-        .form-group input, .form-group select, .form-group textarea {
+        .btn-primary {
+            background: var(--accent);
+            color: white;
             width: 100%;
-            padding: 14px 18px;
-            border: 1px solid var(--border);
-            border-radius: 30px;
-            background: var(--input);
+        }
+        .btn-outline {
+            background: var(--chip);
             color: var(--text);
-            font-size: 14px;
+        }
+        .photo-preview {
+            width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+            margin-top: 8px;
+            border-radius: 12px;
+            display: none;
+        }
+        .photo-preview.show {
+            display: block;
         }
         .photo-upload {
             border: 2px dashed var(--border);
-            border-radius: 28px;
-            padding: 20px;
+            border-radius: 16px;
+            padding: 16px;
             text-align: center;
+            margin: 12px 0;
             cursor: pointer;
         }
-        .photo-preview { width: 100%; max-height: 150px; object-fit: contain; border-radius: 20px; margin-top: 10px; display: none; }
-        .photo-preview.show { display: block; }
-        .premium-option {
-            background: linear-gradient(135deg, rgba(244,162,97,0.2), rgba(244,208,63,0.2));
-            padding: 14px;
-            border-radius: 28px;
-            margin: 16px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .premium-switch {
-            width: 48px;
-            height: 24px;
-            background: var(--chip);
-            border-radius: 40px;
-            position: relative;
-            cursor: pointer;
-            border: 1px solid var(--border);
-        }
-        .premium-switch::before {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            left: 2px;
-            top: 1px;
-            background: var(--accent);
-            border-radius: 50%;
-            transition: 0.2s;
-        }
-        .premium-switch.active::before { transform: translateX(22px); background: var(--gold); }
-
-        .list-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 12px;
-            background: var(--chip);
-            border-radius: 24px;
-            margin-bottom: 12px;
-            cursor: pointer;
-        }
-        .list-item-img {
-            width: 56px;
-            height: 56px;
-            border-radius: 20px;
-            object-fit: cover;
-        }
-        .list-item-info { flex: 1; }
-        .list-item-title { font-weight: 700; margin-bottom: 4px; }
-        .list-item-meta { font-size: 11px; color: var(--text-light); }
-        .sold-badge { background: var(--danger); color: white; padding: 2px 10px; border-radius: 20px; font-size: 10px; margin-left: 8px; }
-
         .chat-messages {
+            background: var(--chip);
+            border-radius: 16px;
+            padding: 12px;
             height: 300px;
             overflow-y: auto;
-            padding: 12px;
-            background: var(--chip);
-            border-radius: 24px;
             margin-bottom: 12px;
             display: flex;
             flex-direction: column;
@@ -526,226 +294,207 @@
         }
         .msg {
             max-width: 80%;
-            padding: 10px 14px;
-            border-radius: 20px;
+            padding: 8px 12px;
+            border-radius: 16px;
             font-size: 13px;
         }
         .msg.in {
             background: var(--card);
             align-self: flex-start;
-            border: 1px solid var(--border);
         }
         .msg.out {
             background: var(--accent);
             color: white;
             align-self: flex-end;
         }
-        .msg small { font-size: 9px; opacity: 0.7; display: block; margin-top: 4px; }
         .chat-input {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
         .chat-input input {
             flex: 1;
-            padding: 12px 16px;
+            padding: 10px;
+            border-radius: 20px;
             border: 1px solid var(--border);
-            border-radius: 30px;
-            background: var(--input);
+            background: var(--bg);
             color: var(--text);
         }
-
-        .toast {
+        #toast {
             position: fixed;
             bottom: 100px;
-            left: 20px;
-            right: 20px;
-            background: var(--card);
-            backdrop-filter: var(--glass-blur);
-            padding: 14px 20px;
-            border-radius: 60px;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 2000;
-            max-width: 360px;
-            margin: 0 auto;
-            box-shadow: var(--shadow);
-        }
-        .toast.show { display: flex; }
-        .toast button {
-            background: var(--accent);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
             color: white;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        .empty { text-align: center; padding: 40px 20px; color: var(--text-light); }
-
-        .confirm-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            z-index: 1500;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 3000;
             display: none;
-            align-items: center;
-            justify-content: center;
         }
-        .confirm-box {
-            background: var(--card);
-            border-radius: 32px;
-            padding: 24px;
-            max-width: 320px;
-            text-align: center;
-        }
-        .confirm-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
+        #toast.show {
+            display: block;
         }
     </style>
 </head>
-<body class="light">
-    <div class="header">
-        <div class="logo">Авито Видное <span>BETA</span><span class="admin-tag" id="adminHeader" style="display: none;">Админ</span></div>
-        <div class="right">
-            <div class="stars" onclick="showStars()" id="starsDisplay">⭐ 0</div>
-            <div class="profile" onclick="toggleMenu()" id="profileIcon">👤</div>
+<body>
+
+    <header>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Поиск на Маркете..." oninput="doSearch()">
         </div>
-    </div>
+        <div class="profile" id="profileIcon" onclick="toggleMenu()">👤</div>
+    </header>
 
-    <div class="menu" id="menu">
-        <div class="menu-header">
-            <div class="menu-avatar" id="menuAvatar">👤</div>
-            <div><div class="menu-name" id="menuName">Пользователь</div><div class="menu-login" id="menuLogin">@user</div></div>
-        </div>
-        <div class="menu-item" onclick="showStars()"><span>⭐</span> Stars <span class="menu-badge stars" id="menuStars">0</span></div>
-        <div class="menu-item" onclick="showMyItems()"><span>📋</span> Мои объявления <span class="menu-badge" id="menuMyItems">0</span></div>
-        <div class="menu-item" onclick="showFavorites()"><span>❤️</span> Избранное <span class="menu-badge" id="menuFav">0</span></div>
-        <div class="menu-item" onclick="showChats()"><span>💬</span> Чаты <span class="menu-badge" id="menuChats">0</span></div>
-        <div class="menu-item" onclick="showReferrals()"><span>👥</span> Рефералы <span class="menu-badge stars" id="menuReferrals">0</span></div>
-        <div class="menu-item" onclick="toggleTheme()"><span>🌙</span><div style="display: flex; justify-content: space-between; width: 100%; align-items: center;"><span>Тёмная тема</span><div class="theme-switch"></div></div></div>
-        <div class="menu-item" id="adminMenuItem" style="display: none;" onclick="showAdmin()"><span>👑</span> Админ-панель <span class="menu-badge" id="menuPending">0</span></div>
-    </div>
-
-    <div class="actions">
-        <button class="btn btn-primary" onclick="openAdd()">➕ Разместить</button>
-        <button class="btn btn-outline" onclick="showMyItems()">📋 Мои</button>
-    </div>
-
-    <div class="search">
-        <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 Поиск товаров..." oninput="doSearch()"></div>
-        <div class="filter-row" id="filterRow"></div>
-    </div>
+    <div id="filterRow"></div>
 
     <div class="feed" id="feed"></div>
 
-    <div class="bottom-nav">
-        <div class="nav-item" onclick="showFavorites()"><span class="nav-icon">❤️</span><span>Избранное</span></div>
-        <div class="nav-item" onclick="openAdd()"><span class="nav-icon">➕</span><span>Разместить</span></div>
-        <div class="nav-item" onclick="showChats()"><span class="nav-icon">💬</span><span>Чаты</span></div>
-        <div class="nav-item" onclick="toggleMenu()"><span class="nav-icon">👤</span><span>Профиль</span></div>
+    <div class="fab" onclick="openAdd()">+</div>
+
+    <div class="menu" id="menu">
+        <div class="menu-user">
+            <div class="profile" id="menuAvatar" style="width:50px; height:50px; font-size:24px;">👤</div>
+            <div>
+                <div id="menuName" style="font-weight:800; font-size:18px;">Загрузка...</div>
+                <div id="menuLogin" style="color:var(--text-light); font-size:14px;">@user</div>
+            </div>
+        </div>
+        <div class="menu-item" onclick="showStars()">⭐ Баланс: <span id="menuStars">0</span></div>
+        <div class="menu-item" onclick="showMyItems()">📦 Мои товары (<span id="menuMyItems">0</span>)</div>
+        <div class="menu-item" onclick="showFavorites()">❤️ Избранное (<span id="menuFav">0</span>)</div>
+        <div class="menu-item" onclick="showChats()">💬 Сообщения (<span id="menuChats">0</span>)</div>
+        <div class="menu-item" onclick="showReferrals()">👥 Пригласить друзей</div>
+        <div class="menu-item" onclick="toggleTheme()">🌓 Сменить тему</div>
+        <div class="menu-item" id="adminMenuItem" style="display:none; color:var(--gold);" onclick="showAdmin()">🛠 Админ-панель</div>
+        <div class="btn btn-outline" style="margin-top: 20px;" onclick="closeMenu()">Закрыть</div>
     </div>
 
-    <!-- Модалки (сокращённые, но полные) -->
-    <div class="modal" id="addModal"><div class="modal-content"><div class="modal-header"><h2 id="modalTitle">➕ Новое объявление</h2><button class="modal-close" onclick="closeAdd()">✖</button></div><input type="hidden" id="editItemId"><div class="form-group"><label>Название <span style="color:var(--danger)">*</span></label><input type="text" id="addTitle" placeholder="Например: iPhone 13"></div><div class="form-group"><label>Категория</label><select id="addCategory"></select></div><div class="form-group"><label>Цена (₽)</label><input type="number" id="addPrice" min="0" step="1" oninput="if(this.value<0) this.value=0"></div><div class="form-group"><label>Описание</label><textarea id="addDesc" rows="3" placeholder="Подробно опишите товар..."></textarea></div><div class="form-group"><div class="photo-upload" onclick="document.getElementById('photoInput').click()"><input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(event)"><span>📸 Загрузить фото</span><img id="photoPreview" class="photo-preview"></div></div><div class="premium-option"><span>⭐ Премиум продвижение (15 ⭐)</span><div class="premium-switch" id="premiumSwitch" onclick="togglePremium()"></div></div><input type="hidden" id="addPremium" value="0"><button class="btn btn-primary" onclick="submitItem()">Отправить на модерацию</button></div></div>
-    <div class="modal" id="starsModal"><div class="modal-content"><div class="modal-header"><h2>⭐ Telegram Stars</h2><button class="modal-close" onclick="closeStars()">✖</button></div><div style="font-size: 52px; text-align: center;" id="starsAmount">0</div><div class="buy-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:20px 0;"><button class="btn btn-primary" onclick="buyStars(50)">50 ⭐</button><button class="btn btn-primary" onclick="buyStars(100)">100 ⭐</button><button class="btn btn-primary" onclick="buyStars(200)">200 ⭐</button><button class="btn btn-primary" onclick="buyStars(500)">500 ⭐</button><div style="grid-column: span 2; display: flex; gap: 10px;"><input type="number" id="customStars" placeholder="Своё число" style="flex:1; padding: 12px; border-radius: 30px; border: 1px solid var(--border); background: var(--input); color: var(--text);"><button class="btn btn-outline" onclick="buyCustomStars()">Купить</button></div></div><div><h3>История</h3><div id="starsHistory"></div></div></div></div>
-    <div class="modal" id="favoritesModal"><div class="modal-content"><div class="modal-header"><h2>❤️ Избранное</h2><button class="modal-close" onclick="closeFavorites()">✖</button></div><div id="favoritesList"></div></div></div>
-    <div class="modal" id="myItemsModal"><div class="modal-content"><div class="modal-header"><h2>📋 Мои объявления</h2><button class="modal-close" onclick="closeMyItems()">✖</button></div><div id="myItemsList"></div></div></div>
-    <div class="modal" id="chatsModal"><div class="modal-content"><div class="modal-header"><h2>💬 Чаты</h2><button class="modal-close" onclick="closeChats()">✖</button></div><div id="chatsList"></div></div></div>
-    <div class="modal" id="chatDetailModal"><div class="modal-content" id="chatDetailContent"></div></div>
-    <div class="modal" id="referralsModal"><div class="modal-content"><div class="modal-header"><h2>👥 Рефералы</h2><button class="modal-close" onclick="closeReferrals()">✖</button></div><div style="background: linear-gradient(135deg, var(--gold), #e67e22); padding: 20px; border-radius: 32px; text-align: center; margin-bottom: 20px;"><div style="font-size: 36px; font-weight: 800;">+15 ⭐</div><div>за каждого приглашённого</div></div><div class="form-group"><label>Ваша ссылка</label><input type="text" id="referralLink" readonly style="cursor: pointer;"></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0;"><div style="background: var(--chip); padding: 12px; border-radius: 24px; text-align: center;"><div id="referralCount" style="font-size: 28px; font-weight: 700;">0</div><div>Приглашено</div></div><div style="background: var(--chip); padding: 12px; border-radius: 24px; text-align: center;"><div id="referralEarned" style="font-size: 28px; font-weight: 700;">0</div><div>Заработано ⭐</div></div></div><div id="referralList"></div></div></div>
-    <div class="modal" id="detailModal"><div class="modal-content" id="detailContent"></div></div>
-    <div class="modal" id="adminModal"><div class="modal-content" style="max-width: 600px;"><div class="modal-header"><h2>👑 Админ-панель</h2><button class="modal-close" onclick="closeAdmin()">✖</button></div><div id="adminStats" style="display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px;"></div><h3>📌 На модерации</h3><div id="moderationListAdmin"></div><h3>💰 Финансы</h3><div id="financeStats"></div><h3>👥 Пользователи</h3><div id="usersListAdmin"></div><h3>📊 Жалобы</h3><div id="reportsListAdmin"></div></div></div>
+    <div id="starsModal" class="modal">
+        <div class="modal-header"><h2>⭐ Баланс Stars</h2><button onclick="closeStars()">✖</button></div>
+        <div class="modal-content">
+            <h3>У вас <span id="starsAmount">0</span> ⭐</h3>
+            <input type="number" id="customStars" placeholder="Кол-во (1-5000)" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);">
+            <button class="btn btn-primary" onclick="buyCustomStars()">Купить Stars</button>
+            <div id="starsHistory" style="margin-top:20px;"></div>
+        </div>
+    </div>
 
-    <div class="toast" id="toast"><span id="toastMsg"></span><button onclick="hideToast()">OK</button></div>
-    <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-box" id="confirmBox"></div></div>
+    <div id="addModal" class="modal">
+        <div class="modal-header"><h2 id="modalTitle">Новое объявление</h2><button onclick="closeAdd()">✖</button></div>
+        <div class="modal-content">
+            <input type="text" id="addTitle" placeholder="Название" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);">
+            <select id="addCategory" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);"></select>
+            <input type="number" id="addPrice" placeholder="Цена (₽)" min="1" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);">
+            <textarea id="addDesc" placeholder="Описание" style="width:100%; height:100px; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);"></textarea>
+            <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
+                📸 Загрузить фото
+                <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+                <img id="photoPreview" class="photo-preview">
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--chip); padding:12px; border-radius:12px; margin-bottom:16px;">
+                <span>Премиум (15 ⭐)</span>
+                <div id="premiumSwitch" style="width:40px; height:20px; background:#ccc; border-radius:10px; position:relative; cursor:pointer;" onclick="togglePremium()">
+                    <div style="width:16px; height:16px; background:white; border-radius:50%; position:absolute; top:2px; left:2px; transition:0.3s;"></div>
+                </div>
+                <input type="hidden" id="addPremium" value="0">
+            </div>
+            <button class="btn btn-primary" onclick="submitItem()">Опубликовать</button>
+        </div>
+    </div>
+
+    <div id="detailModal" class="modal">
+        <div class="modal-header"><h2>Детали товара</h2><button onclick="closeDetail()">✖</button></div>
+        <div class="modal-content" id="detailContent"></div>
+    </div>
+
+    <div id="myItemsModal" class="modal">
+        <div class="modal-header"><h2>📦 Мои товары</h2><button onclick="closeMyItems()">✖</button></div>
+        <div class="modal-content" id="myItemsList"></div>
+    </div>
+
+    <div id="favoritesModal" class="modal">
+        <div class="modal-header"><h2>❤️ Избранное</h2><button onclick="closeFavorites()">✖</button></div>
+        <div class="modal-content" id="favoritesList"></div>
+    </div>
+
+    <div id="chatsModal" class="modal">
+        <div class="modal-header"><h2>💬 Чаты</h2><button onclick="closeChats()">✖</button></div>
+        <div class="modal-content" id="chatsList"></div>
+    </div>
+
+    <div id="chatDetailModal" class="modal">
+        <div class="modal-header"><h2>Чат</h2><button onclick="closeChatDetail()">✖</button></div>
+        <div class="modal-content" id="chatDetailContent"></div>
+    </div>
+
+    <div id="adminModal" class="modal">
+        <div class="modal-header"><h2>🛠 Админ-панель</h2><button onclick="closeAdmin()">✖</button></div>
+        <div class="modal-content">
+            <div id="adminStats"></div>
+            <hr><br>
+            <h4>⏳ Ожидают модерации</h4>
+            <div id="moderationListAdmin"></div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
 
     <script>
-        // ==================== НАСТРОЙКИ (ЗАМЕНИТЕ НА СВОИ) ====================
-        const ADMIN_ID = 'ВАШ_ТЕЛЕГРАМ_ID';  // ← ВСТАВЬТЕ СВОЙ ID (узнайте у @userinfobot)
-        // ====================================================================
+        // ---------- Telegram WebApp ----------
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
 
-        // Категории
+        // ---------- Конфигурация ----------
+        const MY_ADMIN_ID = 5697184715;   // ЗАМЕНИТЕ НА СВОЙ ID (узнать у @userinfobot)
         const CATEGORIES = [
-            { id: 'electronics', name: '📱 Электроника' }, { id: 'furniture', name: '🪑 Мебель' },
-            { id: 'clothes', name: '👕 Одежда' }, { id: 'shoes', name: '👟 Обувь' },
-            { id: 'kids', name: '🧸 Детское' }, { id: 'cars', name: '🚗 Авто' },
-            { id: 'realty', name: '🏠 Недвижимость' }, { id: 'services', name: '🔧 Услуги' },
-            { id: 'pets', name: '🐕 Животные' }, { id: 'sport', name: '⚽ Спорт' },
-            { id: 'books', name: '📚 Книги' }, { id: 'other', name: '📦 Другое' }
+            {id:'auto', name:'🚗 Авто'}, {id:'re', name:'🏠 Недвижимость'},
+            {id:'electr', name:'💻 Техника'}, {id:'hobby', name:'🎸 Хобби'},
+            {id:'other', name:'📦 Прочее'}
         ];
 
-        // Telegram WebApp
-        let tg = window.Telegram?.WebApp;
-        if (!tg) {
-            document.body.innerHTML = '<div style="padding:20px;text-align:center;">❌ Ошибка: приложение не запущено через Telegram. Пожалуйста, откройте через кнопку бота.</div>';
-            throw new Error('WebApp not initialized');
-        }
-        tg.expand();
-        tg.enableClosingConfirmation();
-
-        let tgUser = tg.initDataUnsafe?.user || null;
-        if (!tgUser) {
-            document.body.innerHTML = '<div style="padding:20px;text-align:center;">❌ Ошибка: не удалось получить данные пользователя. Убедитесь, что домен добавлен в BotFather.</div>';
+        // ---------- Данные пользователя ----------
+        const user = tg.initDataUnsafe?.user;
+        if (!user) {
+            document.body.innerHTML = '<div style="padding:20px;text-align:center;">❌ Ошибка: приложение не запущено через Telegram. Откройте через кнопку бота.</div>';
             throw new Error('No user data');
         }
 
-        let userId = tgUser.id.toString();
-        let userName = tgUser.first_name || (tgUser.username ? '@' + tgUser.username : 'Пользователь');
-        let userLogin = tgUser.username ? '@' + tgUser.username : `user_${userId.slice(-6)}`;
-        let userAvatar = userName ? userName[0].toUpperCase() : '👤';
+        const userId = user.id.toString();
+        const isAdmin = (userId === MY_ADMIN_ID.toString());
 
-        let isAdmin = (userId === ADMIN_ID);
-
-        // База данных (localStorage)
-        let users = JSON.parse(localStorage.getItem('avito_users') || '{}');
-        let items = JSON.parse(localStorage.getItem('avito_items') || '[]');
-        let favorites = JSON.parse(localStorage.getItem(`avito_fav_${userId}`) || '[]');
-        let chats = JSON.parse(localStorage.getItem(`avito_chats_${userId}`) || '[]');
-        let transactions = JSON.parse(localStorage.getItem(`avito_trans_${userId}`) || '[]');
-        let reports = JSON.parse(localStorage.getItem('avito_reports') || '[]');
-
-        // Инициализация пользователя
-        if (!users[userId]) {
-            users[userId] = {
-                id: userId, name: userName, login: userLogin, avatar: userAvatar,
-                stars: 0, spent: 0, status: 'active', role: isAdmin ? 'admin' : 'user',
-                rating: 5.0, reviews: 0, bio: '', referrer: null, referrals: [],
-                registered: new Date().toLocaleDateString()
+        // Загрузка/инициализация пользователя
+        let users = JSON.parse(localStorage.getItem('avito_users')) || {};
+        let currentUser = users[userId];
+        if (!currentUser) {
+            currentUser = {
+                id: userId,
+                name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь',
+                login: user.username ? `@${user.username}` : `user_${userId.slice(-6)}`,
+                avatar: user.photo_url ? `<img src="${user.photo_url}">` : (user.first_name ? user.first_name[0].toUpperCase() : '👤'),
+                stars: 100,
+                spent: 0,
+                role: isAdmin ? 'admin' : 'user',
+                referrals: [],
+                bio: ''
             };
-            let urlParams = new URLSearchParams(window.location.search);
-            let ref = urlParams.get('ref');
-            if (ref && users[ref] && ref !== userId) {
-                users[userId].referrer = ref;
-                users[ref].stars += 15;
-                if (!users[ref].referrals) users[ref].referrals = [];
-                users[ref].referrals.push({ id: userId, name: userName, date: new Date().toLocaleDateString() });
-                transactions.unshift({ id: Date.now(), amount: 15, desc: `Реферал: ${userName}`, date: new Date().toLocaleDateString() });
-                toast('🎉 +15 ⭐ за приглашение!');
-            }
+            users[userId] = currentUser;
             localStorage.setItem('avito_users', JSON.stringify(users));
         } else {
-            users[userId].name = userName;
-            users[userId].login = userLogin;
-            users[userId].avatar = userAvatar;
+            // обновим данные на случай смены имени
+            currentUser.name = `${user.first_name || ''} ${user.last_name || ''}`.trim() || currentUser.name;
+            currentUser.login = user.username ? `@${user.username}` : currentUser.login;
+            if (user.photo_url) currentUser.avatar = `<img src="${user.photo_url}">`;
+            users[userId] = currentUser;
             localStorage.setItem('avito_users', JSON.stringify(users));
         }
 
-        let currentUser = users[userId];
-        isAdmin = (currentUser.role === 'admin');
+        let items = JSON.parse(localStorage.getItem('avito_items')) || [];
+        let favorites = JSON.parse(localStorage.getItem(`avito_fav_${userId}`)) || [];
+        let chats = JSON.parse(localStorage.getItem(`avito_chats_${userId}`)) || [];
+        let transactions = JSON.parse(localStorage.getItem(`avito_trans_${userId}`)) || [];
 
-        if (currentUser.status === 'blocked') {
-            document.body.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;"><div style="background:var(--card);border-radius:56px;padding:40px;text-align:center;"><div style="font-size:64px;">🚫</div><h2>Доступ заблокирован</h2><p>${currentUser.block_reason || 'Нарушение правил'}</p></div></div>`;
-            throw new Error('Blocked');
-        }
-
-        // Сохранение данных
         function saveData() {
             localStorage.setItem('avito_items', JSON.stringify(items));
             localStorage.setItem(`avito_fav_${userId}`, JSON.stringify(favorites));
@@ -753,41 +502,37 @@
             localStorage.setItem(`avito_trans_${userId}`, JSON.stringify(transactions));
             users[userId] = currentUser;
             localStorage.setItem('avito_users', JSON.stringify(users));
-            localStorage.setItem('avito_reports', JSON.stringify(reports));
         }
 
         function toast(msg) {
-            let t = document.getElementById('toast');
-            document.getElementById('toastMsg').innerText = msg;
+            const t = document.getElementById('toast');
+            t.innerText = msg;
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
+            setTimeout(() => t.classList.remove('show'), 2000);
         }
 
         function updateUI() {
-            document.getElementById('starsDisplay').innerHTML = `⭐ ${currentUser.stars}`;
             document.getElementById('menuStars').innerText = currentUser.stars;
-            document.getElementById('profileIcon').innerText = currentUser.avatar;
-            document.getElementById('menuAvatar').innerText = currentUser.avatar;
+            document.getElementById('starsAmount').innerText = currentUser.stars;
+            document.getElementById('profileIcon').innerHTML = currentUser.avatar;
+            document.getElementById('menuAvatar').innerHTML = currentUser.avatar;
             document.getElementById('menuName').innerText = currentUser.name;
             document.getElementById('menuLogin').innerText = currentUser.login;
-            if (isAdmin) {
-                document.getElementById('adminMenuItem').style.display = 'flex';
-                document.getElementById('adminHeader').style.display = 'inline-block';
-            }
-            let myCount = items.filter(i => i.sellerId === userId && i.moderation === 'approved' && i.status !== 'sold').length;
+
+            if (isAdmin) document.getElementById('adminMenuItem').style.display = 'flex';
+
+            const myCount = items.filter(i => i.sellerId === userId && i.moderation === 'approved').length;
             document.getElementById('menuMyItems').innerText = myCount;
             document.getElementById('menuFav').innerText = favorites.length;
             document.getElementById('menuChats').innerText = chats.length;
-            document.getElementById('menuReferrals').innerText = currentUser.referrals?.length || 0;
-            document.getElementById('menuPending').innerText = items.filter(i => i.moderation === 'pending').length;
         }
 
-        // Покупка Stars
-        function buyStars(amount) {
+        // ---------- Stars (оплата через Telegram) ----------
+        function buyStars(amount, onSuccess) {
             tg.sendInvoice(
                 `Покупка ${amount} Stars`,
-                `Пополнение баланса для продвижения в Авито Видное`,
-                `stars_${amount}_${Date.now()}`,
+                `Пополнение баланса для продвижения`,
+                `stars_${userId}_${Date.now()}`,
                 "",
                 "XTR",
                 [{ label: `${amount} Stars`, amount: amount }]
@@ -795,201 +540,217 @@
             tg.onEvent('invoiceClosed', (invoice) => {
                 if (invoice.status === 'paid') {
                     currentUser.stars += amount;
-                    transactions.unshift({ id: Date.now(), amount: amount, desc: `Покупка ${amount} ⭐`, date: new Date().toLocaleDateString() });
-                    saveData(); updateUI(); toast(`✅ +${amount} ⭐`); closeStars();
+                    transactions.unshift({ desc: `Покупка ${amount} ⭐`, date: new Date().toLocaleDateString(), amount });
+                    saveData();
+                    updateUI();
+                    toast(`✅ +${amount} ⭐`);
+                    if (onSuccess) onSuccess();
                 } else toast('❌ Оплата отменена');
             });
         }
 
-        function buyCustomStars() { let a = parseInt(document.getElementById('customStars').value); if(a>0 && a<=5000) buyStars(a); else toast('❌ Введите число от 1 до 5000'); }
+        function buyCustomStars() {
+            let a = parseInt(document.getElementById('customStars').value);
+            if (a > 0 && a <= 5000) buyStars(a);
+            else toast('❌ Введите число от 1 до 5000');
+        }
 
         function showStars() {
             document.getElementById('starsAmount').innerText = currentUser.stars;
-            let hist = transactions.slice(0,10).map(t => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:8px 0;"><span>${t.desc}<br><small>${t.date}</small></span><span>${t.amount} ⭐</span></div>`).join('');
-            document.getElementById('starsHistory').innerHTML = hist || '<div class="empty">Нет операций</div>';
-            document.getElementById('starsModal').classList.add('active'); closeMenu();
+            const hist = transactions.slice(0,10).map(t => `<div>${t.desc} — ${t.amount} ⭐<br><small>${t.date}</small></div>`).join('');
+            document.getElementById('starsHistory').innerHTML = hist || 'Нет операций';
+            document.getElementById('starsModal').classList.add('active');
+            closeMenu();
         }
         function closeStars() { document.getElementById('starsModal').classList.remove('active'); }
 
-        // Рендер
+        // ---------- Рендер ленты ----------
         let currentCat = 'all', currentSearch = '';
-        function getCatName(catId) { let cat = CATEGORIES.find(c => c.id === catId); return cat ? cat.name : catId; }
-
-        function renderFilters() {
-            const container = document.getElementById('filterRow');
-            container.innerHTML = '<span class="filter active" data-cat="all">🌟 Все</span>' + CATEGORIES.map(c => `<span class="filter" data-cat="${c.id}">${c.name}</span>`).join('');
-            document.querySelectorAll('.filter').forEach(el => el.addEventListener('click', () => filterCat(el.dataset.cat)));
-        }
-
         function render() {
-            let feed = document.getElementById('feed');
-            let filtered = items.filter(i => i.moderation === 'approved' && i.status !== 'sold' && (currentCat === 'all' || i.category === currentCat) && (!currentSearch || i.title.toLowerCase().includes(currentSearch) || i.description.toLowerCase().includes(currentSearch)));
+            const feed = document.getElementById('feed');
+            let filtered = items.filter(i =>
+                i.moderation === 'approved' &&
+                (currentCat === 'all' || i.category === currentCat) &&
+                (!currentSearch || i.title.toLowerCase().includes(currentSearch) || i.description.toLowerCase().includes(currentSearch))
+            );
             filtered.sort((a,b) => (a.premium && !b.premium) ? -1 : 1);
-            if (!filtered.length) { feed.innerHTML = '<div class="empty"><h3>😕 Объявлений пока нет</h3><p>Разместите первое!</p></div>'; return; }
+
             feed.innerHTML = filtered.map(i => `
                 <div class="card ${i.premium ? 'premium' : ''}" onclick="openDetail(${i.id})">
                     ${i.premium ? '<div class="premium-badge">⭐ PREMIUM</div>' : ''}
-                    <img class="card-img" src="${i.photo}" onerror="this.src='https://via.placeholder.com/400x200/cccccc?text=Фото'">
+                    <img class="card-img" src="${i.photo || 'https://via.placeholder.com/200?text=Нет+фото'}">
                     <div class="card-content">
-                        <div class="price-cat-row">
-                            <span class="card-price">${i.price.toLocaleString()} ₽</span>
-                            <span class="card-cat">${getCatName(i.category)}</span>
-                        </div>
-                        <div class="separator"></div>
+                        <div class="card-price">${i.price.toLocaleString()} ₽</div>
                         <div class="card-title">${i.title}</div>
-                        <div class="card-desc">${i.description.substring(0, 60)}...</div>
-                        <div class="card-meta"><span>👁️ ${i.views}</span><span>🕐 ${i.time}</span></div>
-                        <div class="separator"></div>
-                        <div class="card-footer">
-                            <div class="seller" onclick="event.stopPropagation(); showSeller('${i.sellerId}')">
-                                <div class="seller-avatar">${i.sellerAvatar}</div>
-                                <span>${i.seller}</span>
-                            </div>
-                            <button class="icon" onclick="event.stopPropagation(); toggleFav(${i.id})">${favorites.includes(i.id) ? '❤️' : '🤍'}</button>
-                        </div>
+                        <div class="card-meta">🕐 ${i.time}</div>
                     </div>
                 </div>
-            `).join('');
+            `).join('') || '<div style="grid-column:1/3; text-align:center; padding:20px;">Тут пока пусто</div>';
         }
 
-        function filterCat(cat) {
-            currentCat = cat;
-            document.querySelectorAll('.filter').forEach(el => {
-                el.classList.toggle('active', el.dataset.cat === cat || (cat === 'all' && el.dataset.cat === 'all'));
-            });
+        function filterCat(id) {
+            currentCat = id;
+            document.querySelectorAll('.filter').forEach(el => el.classList.toggle('active', el.dataset.cat === id));
             render();
         }
 
-        function doSearch() { currentSearch = document.getElementById('searchInput').value.toLowerCase(); render(); }
-        function toggleFav(id) { let idx = favorites.indexOf(id); idx===-1?favorites.push(id):favorites.splice(idx,1); saveData(); render(); toast(idx===-1?'✅ В избранном':'❌ Удалено'); }
+        function doSearch() {
+            currentSearch = document.getElementById('searchInput').value.toLowerCase();
+            render();
+        }
 
-        let currentPhotoData = null, editingItemId = null;
+        // ---------- Работа с фото ----------
+        let currentPhotoData = null;
         function handlePhoto(e) {
-            let file = e.target.files[0];
-            if(file) { let r = new FileReader(); r.onload = ev => { currentPhotoData = ev.target.result; document.getElementById('photoPreview').src = ev.target.result; document.getElementById('photoPreview').classList.add('show'); }; r.readAsDataURL(file); }
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    currentPhotoData = ev.target.result;
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = ev.target.result;
+                    preview.classList.add('show');
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
+        // ---------- Премиум переключатель ----------
         function togglePremium() {
-            let sw = document.getElementById('premiumSwitch');
-            let isActive = sw.classList.contains('active');
-            if (!isActive) {
+            const sw = document.getElementById('premiumSwitch');
+            const input = document.getElementById('addPremium');
+            const dot = sw.querySelector('div');
+            if (input.value === "0") {
                 if (currentUser.stars >= 15) {
-                    sw.classList.add('active');
-                    document.getElementById('addPremium').value = '1';
+                    sw.style.background = "var(--success)";
+                    dot.style.left = "22px";
+                    input.value = "1";
                 } else {
-                    showConfirm('Недостаточно Stars для премиума. Пополнить на 15 ⭐?', 'Оплатить 15 ⭐', 'Отмена', () => {
-                        buyStars(15, () => {
-                            sw.classList.add('active');
-                            document.getElementById('addPremium').value = '1';
-                            toast('✅ Баланс пополнен, премиум активирован!');
-                        });
-                    }, () => {});
+                    toast('❌ Нужно 15 ⭐. Пополните баланс.');
                 }
             } else {
-                sw.classList.remove('active');
-                document.getElementById('addPremium').value = '0';
+                sw.style.background = "#ccc";
+                dot.style.left = "2px";
+                input.value = "0";
             }
         }
 
-        function showConfirm(msg, okText, cancelText, onOk, onCancel) {
-            let overlay = document.getElementById('confirmOverlay');
-            let box = document.getElementById('confirmBox');
-            box.innerHTML = `<p style="margin-bottom:16px;">${msg}</p><div class="confirm-buttons"><button class="btn btn-primary" onclick="window.confirmCallback(true)">${okText}</button><button class="btn btn-outline" onclick="window.confirmCallback(false)">${cancelText}</button></div>`;
-            window.confirmCallback = (result) => {
-                if(result) onOk(); else if(onCancel) onCancel();
-                closeConfirm();
-            };
-            overlay.style.display = 'flex';
-        }
-        function closeConfirm() { document.getElementById('confirmOverlay').style.display = 'none'; }
-
-        function openAdd(itemId=null) {
-            editingItemId = itemId;
+        // ---------- Добавление товара ----------
+        function openAdd() {
+            document.getElementById('addModal').classList.add('active');
             document.getElementById('addCategory').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            document.getElementById('premiumSwitch').classList.remove('active');
-            document.getElementById('addPremium').value = '0';
-            if(itemId) {
-                let item = items.find(i=>i.id===itemId);
-                if(item) {
-                    document.getElementById('modalTitle').innerText = '✏️ Редактировать';
-                    document.getElementById('addTitle').value = item.title;
-                    document.getElementById('addCategory').value = item.category;
-                    document.getElementById('addPrice').value = item.price;
-                    document.getElementById('addDesc').value = item.description;
-                    if(item.premium) { document.getElementById('premiumSwitch').classList.add('active'); document.getElementById('addPremium').value = '1'; }
-                    if(item.photo && !item.photo.includes('placeholder')) { document.getElementById('photoPreview').src = item.photo; document.getElementById('photoPreview').classList.add('show'); currentPhotoData = item.photo; }
-                }
-            } else {
-                document.getElementById('modalTitle').innerText = '➕ Новое объявление';
-                document.getElementById('addTitle').value = '';
-                document.getElementById('addPrice').value = '';
-                document.getElementById('addDesc').value = '';
-                document.getElementById('photoPreview').classList.remove('show');
-                currentPhotoData = null;
-            }
-            document.getElementById('addModal').classList.add('active'); closeMenu();
+            closeMenu();
         }
-        function closeAdd() { document.getElementById('addModal').classList.remove('active'); editingItemId = null; }
+        function closeAdd() { document.getElementById('addModal').classList.remove('active'); }
 
         function submitItem() {
-            let title = document.getElementById('addTitle').value, cat = document.getElementById('addCategory').value, price = parseInt(document.getElementById('addPrice').value)||0, desc = document.getElementById('addDesc').value, premium = document.getElementById('addPremium').value === '1';
-            if(!title || !desc) { toast('❌ Заполните название и описание'); return; }
-            if(price < 0) price = 0;
-            if(premium && currentUser.stars < 15) { toast('❌ Недостаточно ⭐ для премиума'); return; }
-            if(editingItemId) {
-                let oldItem = items.find(i=>i.id===editingItemId);
-                if(!oldItem) return;
-                if(premium && !oldItem.premium) {
-                    if(currentUser.stars < 15) { toast('❌ Недостаточно ⭐'); return; }
-                    currentUser.stars -= 15;
-                    transactions.unshift({ id: Date.now(), amount: -15, desc: `Премиум: ${title}`, date: new Date().toLocaleDateString() });
-                }
-                items = items.filter(i=>i.id!==editingItemId);
-                items.unshift({ id: Date.now(), title, price, category: cat, description: desc, photo: currentPhotoData || oldItem.photo, seller: currentUser.name, sellerAvatar: currentUser.avatar, time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), views: 0, sellerId: userId, status: 'active', moderation: 'pending', premium });
-                saveData(); closeAdd(); render(); updateUI(); toast('✅ Отправлено на модерацию');
-            } else {
-                if(premium) { currentUser.stars -= 15; transactions.unshift({ id: Date.now(), amount: -15, desc: `Премиум: ${title}`, date: new Date().toLocaleDateString() }); }
-                items.unshift({ id: Date.now(), title, price, category: cat, description: desc, photo: currentPhotoData || 'https://via.placeholder.com/400x200/cccccc?text=Фото', seller: currentUser.name, sellerAvatar: currentUser.avatar, time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), views: 0, sellerId: userId, status: 'active', moderation: 'pending', premium });
-                saveData(); closeAdd(); render(); updateUI(); toast('✅ Отправлено на модерацию');
-            }
+            const title = document.getElementById('addTitle').value.trim();
+            const price = parseInt(document.getElementById('addPrice').value);
+            const cat = document.getElementById('addCategory').value;
+            const desc = document.getElementById('addDesc').value.trim();
+            const isPremium = document.getElementById('addPremium').value === "1";
+
+            if (!title) { toast('❌ Введите название'); return; }
+            if (!price || price <= 0) { toast('❌ Введите корректную цену'); return; }
+            if (!desc) { toast('❌ Введите описание'); return; }
+
+            if (isPremium && currentUser.stars < 15) { toast('❌ Недостаточно Stars'); return; }
+            if (isPremium) currentUser.stars -= 15;
+
+            items.unshift({
+                id: Date.now(),
+                title,
+                price,
+                category: cat,
+                description: desc,
+                photo: currentPhotoData || 'https://via.placeholder.com/200?text=Нет+фото',
+                sellerId: userId,
+                sellerName: currentUser.name,
+                premium: isPremium,
+                moderation: 'pending',
+                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+                views: 0
+            });
+
+            saveData();
+            closeAdd();
+            render();
+            updateUI();
+            toast('✅ Отправлено на модерацию');
+            currentPhotoData = null;
+            document.getElementById('photoPreview').classList.remove('show');
         }
 
+        // ---------- Детали товара ----------
         function openDetail(id) {
-            let item = items.find(i=>i.id===id);
-            if(!item) return;
-            item.views++; saveData();
-            let seller = users[item.sellerId] || { name: item.seller, avatar: item.sellerAvatar };
-            let content = `<div class="modal-header"><h2>${item.title}</h2><button class="modal-close" onclick="closeDetail()">✖</button></div><img src="${item.photo}" style="width:100%; height:200px; object-fit:cover; border-radius:28px; margin-bottom:16px;"><div class="card-price" style="font-size:28px;">${item.price.toLocaleString()} ₽</div><div class="separator"></div><div style="margin:16px 0;"><b>📝 Описание</b><br>${item.description}</div><div class="seller" onclick="showSeller('${item.sellerId}')" style="background:var(--chip); padding:12px; border-radius:28px;"><div class="seller-avatar">${seller.avatar}</div><div><b>${seller.name}</b><br>⭐ ${seller.rating}</div></div><div style="display:flex; gap:12px; margin-top:16px;">${item.sellerId !== userId ? `<button class="btn btn-primary" onclick="openChat('${item.sellerId}')">💬 Написать</button>` : ''}<button class="btn btn-outline" onclick="toggleFav(${item.id}); closeDetail();">${favorites.includes(item.id) ? '❤️' : '🤍'}</button>${item.sellerId === userId ? `<button class="btn btn-outline" onclick="openEditItem(${item.id})">✏️ Редактировать</button>` : ''}</div>`;
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+            item.views = (item.views || 0) + 1;
+            saveData();
+
+            const isFav = favorites.includes(id);
+            const content = `
+                <img src="${item.photo}" style="width:100%; border-radius:16px; margin-bottom:16px;">
+                <h1 style="margin:8px 0;">${item.price.toLocaleString()} ₽</h1>
+                <h2>${item.title}</h2>
+                <p style="margin:12px 0; color:var(--text-light);">${item.description}</p>
+                <hr style="border:0; border-top:1px solid var(--border); margin:16px 0;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="profile">${users[item.sellerId]?.avatar || '👤'}</div>
+                    <b>${item.sellerName}</b>
+                </div>
+                <div style="margin-top:20px; display:flex; gap:12px;">
+                    ${item.sellerId !== userId ? `<button class="btn btn-primary" onclick="openChat('${item.sellerId}')">💬 Написать</button>` : ''}
+                    <button class="btn btn-outline" onclick="toggleFav(${id})">${isFav ? '❤️ В избранном' : '🤍 В избранное'}</button>
+                </div>
+            `;
             document.getElementById('detailContent').innerHTML = content;
             document.getElementById('detailModal').classList.add('active');
         }
-        function openEditItem(id) { closeDetail(); openAdd(id); }
         function closeDetail() { document.getElementById('detailModal').classList.remove('active'); }
-        function showSeller(id) { toast('Профиль продавца: ' + (users[id]?.name || 'Пользователь')); }
 
+        function toggleFav(id) {
+            const idx = favorites.indexOf(id);
+            if (idx === -1) favorites.push(id);
+            else favorites.splice(idx,1);
+            saveData();
+            updateUI();
+            toast(idx === -1 ? '✅ Добавлено в избранное' : '❌ Удалено');
+            render();
+        }
+
+        // ---------- Избранное ----------
         function showFavorites() {
-            let favItems = items.filter(i => favorites.includes(i.id));
-            let html = favItems.map(i => `<div class="list-item" onclick="${i.status!=='sold'?'openDetail('+i.id+')':''}"><img class="list-item-img" src="${i.photo}"><div class="list-item-info"><div class="list-item-title">${i.title} ${i.status==='sold'?'<span class="sold-badge">ПРОДАНО</span>':''}</div><div class="list-item-meta">${i.price.toLocaleString()} ₽</div></div><button class="icon active" onclick="event.stopPropagation(); toggleFav(${i.id}); showFavorites();">❤️</button></div>`).join('');
-            document.getElementById('favoritesList').innerHTML = html || '<div class="empty">Нет избранных</div>';
+            const favItems = items.filter(i => favorites.includes(i.id));
+            const html = favItems.map(i => `
+                <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px; display:flex; gap:12px; cursor:pointer;" onclick="openDetail(${i.id})">
+                    <img src="${i.photo}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
+                    <div>
+                        <div style="font-weight:700;">${i.title}</div>
+                        <div>${i.price.toLocaleString()} ₽</div>
+                        <div style="font-size:11px; color:var(--text-light);">${i.time}</div>
+                    </div>
+                    <button class="btn btn-outline" style="margin-left:auto; padding:4px 12px;" onclick="event.stopPropagation(); toggleFav(${i.id}); showFavorites();">Удалить</button>
+                </div>
+            `).join('');
+            document.getElementById('favoritesList').innerHTML = html || '<div style="text-align:center;">Нет избранных товаров</div>';
             document.getElementById('favoritesModal').classList.add('active');
+            closeMenu();
         }
         function closeFavorites() { document.getElementById('favoritesModal').classList.remove('active'); }
 
-        function showMyItems() {
-            let my = items.filter(i=>i.sellerId===userId);
-            let html = my.map(i=>`<div class="list-item" onclick="openDetail(${i.id})"><img class="list-item-img" src="${i.photo}"><div class="list-item-info"><div class="list-item-title">${i.title} ${i.premium?'⭐':''}</div><div class="list-item-meta">${i.price.toLocaleString()} ₽ • ${i.moderation==='pending'?'⏳ Модерация':i.moderation==='rejected'?'❌ Отклонено':i.status==='sold'?'💰 Продано':'✅ Активно'}</div></div><div>👁️ ${i.views}</div></div>`).join('');
-            document.getElementById('myItemsList').innerHTML = html || '<div class="empty">Нет объявлений</div>';
-            document.getElementById('myItemsModal').classList.add('active');
-        }
-        function closeMyItems() { document.getElementById('myItemsModal').classList.remove('active'); }
-
+        // ---------- Чаты ----------
         let currentChat = null;
         function openChat(sellerId) {
-            let seller = users[sellerId];
-            if(!seller) return;
             let chat = chats.find(c => c.with === sellerId);
-            if(!chat) {
-                chat = { id: Date.now(), with: sellerId, withName: seller.name, withAvatar: seller.avatar, messages: [] };
+            if (!chat) {
+                chat = {
+                    id: Date.now(),
+                    with: sellerId,
+                    withName: users[sellerId]?.name || 'Продавец',
+                    withAvatar: users[sellerId]?.avatar || '👤',
+                    messages: []
+                };
                 chats.push(chat);
                 saveData();
             }
@@ -998,79 +759,150 @@
             document.getElementById('chatDetailModal').classList.add('active');
         }
         function renderChatModal() {
-            if(!currentChat) return;
-            let seller = users[currentChat.with];
-            let html = `<div class="modal-header"><h2>Чат с ${seller?.name || 'продавцом'}</h2><button class="modal-close" onclick="closeChatModal()">✖</button></div>
-                <div class="chat-messages" id="chatMessages">${currentChat.messages.map(m => `<div class="msg ${m.type}">${m.text}<small>${m.time}</small></div>`).join('')}</div>
-                <div class="chat-input"><input type="text" id="chatInput" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendChatMessage()"><button class="btn btn-primary" onclick="sendChatMessage()">➤</button></div>`;
+            const html = `
+                <div class="chat-messages" id="chatMessages">
+                    ${currentChat.messages.map(m => `
+                        <div class="msg ${m.type}">${m.text}<small>${m.time}</small></div>
+                    `).join('')}
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                    <button class="btn btn-primary" style="width:auto; padding:0 16px;" onclick="sendChatMessage()">➤</button>
+                </div>
+            `;
             document.getElementById('chatDetailContent').innerHTML = html;
-            setTimeout(() => { let msgs = document.getElementById('chatMessages'); if(msgs) msgs.scrollTop = msgs.scrollHeight; }, 100);
+            setTimeout(() => {
+                const msgs = document.getElementById('chatMessages');
+                if (msgs) msgs.scrollTop = msgs.scrollHeight;
+            }, 100);
         }
         function sendChatMessage() {
-            let input = document.getElementById('chatInput');
-            if(!input || !input.value.trim() || !currentChat) return;
-            currentChat.messages.push({ text: input.value, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), type: 'out' });
+            const input = document.getElementById('chatInput');
+            if (!input || !input.value.trim() || !currentChat) return;
+            currentChat.messages.push({
+                text: input.value,
+                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+                type: 'out'
+            });
             saveData();
             renderChatModal();
             input.value = '';
         }
-        function closeChatModal() { document.getElementById('chatDetailModal').classList.remove('active'); currentChat = null; }
+        function closeChatDetail() {
+            document.getElementById('chatDetailModal').classList.remove('active');
+            currentChat = null;
+        }
         function showChats() {
-            let list = chats.map(c => {
-                let seller = users[c.with];
-                return `<div class="list-item" onclick="openChat('${c.with}')"><div class="seller-avatar">${seller?.avatar || '?'}</div><div class="list-item-info"><div class="list-item-title">${seller?.name || 'Пользователь'}</div><div class="list-item-meta">${c.messages.length ? c.messages[c.messages.length-1].text.substring(0,30) : 'Нет сообщений'}</div></div></div>`;
-            }).join('');
-            document.getElementById('chatsList').innerHTML = list || '<div class="empty">Нет чатов</div>';
+            const list = chats.map(c => `
+                <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px; display:flex; gap:12px; align-items:center; cursor:pointer;" onclick="openChat('${c.with}')">
+                    <div class="profile" style="width:40px; height:40px;">${c.withAvatar}</div>
+                    <div>
+                        <div style="font-weight:700;">${c.withName}</div>
+                        <div style="font-size:12px; color:var(--text-light);">${c.messages.length ? c.messages[c.messages.length-1].text.substring(0,30) : 'Нет сообщений'}</div>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('chatsList').innerHTML = list || '<div style="text-align:center;">Нет чатов</div>';
             document.getElementById('chatsModal').classList.add('active');
+            closeMenu();
         }
         function closeChats() { document.getElementById('chatsModal').classList.remove('active'); }
 
+        // ---------- Рефералы ----------
         function showReferrals() {
-            let rc = currentUser.referrals?.length||0;
-            document.getElementById('referralCount').innerText = rc;
-            document.getElementById('referralEarned').innerText = rc*15;
-            let linkInput = document.getElementById('referralLink');
-            linkInput.value = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
-            linkInput.onclick = function() { this.select(); navigator.clipboard.writeText(this.value); toast('✅ Ссылка скопирована'); };
-            let list = (currentUser.referrals||[]).map(r=>`<div class="list-item"><div class="seller-avatar">${r.name[0]}</div><div><div>${r.name}</div><div class="list-item-meta">${r.date} • +15 ⭐</div></div></div>`).join('');
-            document.getElementById('referralList').innerHTML = list || '<div class="empty">Нет приглашённых</div>';
-            document.getElementById('referralsModal').classList.add('active');
+            const refLink = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
+            navigator.clipboard.writeText(refLink);
+            toast('✅ Ссылка скопирована! Отправьте другу.');
+            closeMenu();
         }
-        function closeReferrals() { document.getElementById('referralsModal').classList.remove('active'); }
 
-        // Админка
+        // ---------- Мои товары ----------
+        function showMyItems() {
+            const my = items.filter(i => i.sellerId === userId);
+            const html = my.map(i => `
+                <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px; display:flex; gap:12px; cursor:pointer;" onclick="openDetail(${i.id})">
+                    <img src="${i.photo}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
+                    <div>
+                        <div style="font-weight:700;">${i.title}</div>
+                        <div>${i.price.toLocaleString()} ₽</div>
+                        <div style="font-size:11px; color:var(--text-light);">Статус: ${i.moderation === 'pending' ? '⏳ На модерации' : i.moderation === 'approved' ? '✅ Активен' : '❌ Отклонён'}</div>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('myItemsList').innerHTML = html || '<div style="text-align:center;">У вас пока нет товаров</div>';
+            document.getElementById('myItemsModal').classList.add('active');
+            closeMenu();
+        }
+        function closeMyItems() { document.getElementById('myItemsModal').classList.remove('active'); }
+
+        // ---------- Админка ----------
         function showAdmin() {
-            if(!isAdmin) { toast('⛔ Доступ запрещён'); return; }
-            let totalStars = Object.values(users).reduce((s,u)=>s+u.stars,0);
-            document.getElementById('adminStats').innerHTML = `<div><strong>📦 Товаров:</strong> ${items.length}</div><div><strong>⏳ Модерация:</strong> ${items.filter(i=>i.moderation==='pending').length}</div><div><strong>👥 Пользователей:</strong> ${Object.keys(users).length}</div><div><strong>⭐ Всего Stars:</strong> ${totalStars}</div>`;
-            document.getElementById('financeStats').innerHTML = `<div style="background:var(--chip);border-radius:28px;padding:14px;"><b>💰 Общая выручка:</b> ${totalStars} ⭐<br><b>💸 Потрачено на премиум:</b> ${items.filter(i=>i.premium).length*15} ⭐</div>`;
-            document.getElementById('moderationListAdmin').innerHTML = items.filter(i=>i.moderation==='pending').map(i=>`<div style="background:var(--chip);border-radius:28px;padding:14px;margin-bottom:12px;"><b>${i.title}</b> (${i.price} ₽)<br>👤 ${i.seller}<br><button class="btn btn-primary" onclick="approveItem(${i.id})">✅ Одобрить</button> <button class="btn btn-danger" onclick="rejectItem(${i.id})">❌ Отклонить</button></div>`).join('') || '<div class="empty">Нет на модерации</div>';
-            document.getElementById('usersListAdmin').innerHTML = Object.values(users).map(u=>`<div style="background:var(--chip);border-radius:28px;padding:14px;margin-bottom:10px;"><b>${u.name}</b> (${u.login}) ⭐ ${u.stars}<br>${u.status==='blocked'?'🚫 Заблокирован':''}<br>${u.id!==userId?`<button class="btn btn-outline" onclick="blockUser('${u.id}')">🔨 Блокировать</button> <button class="btn btn-outline" onclick="addStarsToUser('${u.id}')">⭐ Начислить</button>`:''}</div>`).join('');
-            document.getElementById('reportsListAdmin').innerHTML = reports.map(r=>`<div style="background:var(--chip);border-radius:28px;padding:14px;margin-bottom:10px;"><b>Жалоба от ${users[r.from]?.name || r.from}</b> на ${users[r.on]?.name || r.on}<br>Причина: ${r.reason}<br>${r.desc}<br><button class="btn btn-danger" onclick="resolveReport(${r.id})">✅ Рассмотрено</button></div>`).join('') || '<div class="empty">Нет жалоб</div>';
+            if (!isAdmin) { toast('⛔ Доступ запрещён'); return; }
+            const pending = items.filter(i => i.moderation === 'pending');
+            document.getElementById('adminStats').innerHTML = `Всего товаров: ${items.length} | На модерации: ${pending.length}`;
+            document.getElementById('moderationListAdmin').innerHTML = pending.map(i => `
+                <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px;">
+                    <b>${i.title}</b> (${i.price} ₽)<br>
+                    👤 ${i.sellerName}<br>
+                    <button class="btn btn-primary" style="margin-top:8px; padding:8px;" onclick="approveItem(${i.id})">✅ Одобрить</button>
+                    <button class="btn btn-outline" style="margin-top:8px; padding:8px;" onclick="rejectItem(${i.id})">❌ Отклонить</button>
+                </div>
+            `).join('') || 'Нет заявок';
             document.getElementById('adminModal').classList.add('active');
+            closeMenu();
         }
         function closeAdmin() { document.getElementById('adminModal').classList.remove('active'); }
-        function approveItem(id) { let i=items.find(x=>x.id===id); if(i){i.moderation='approved'; i.status='active'; saveData(); render(); showAdmin(); toast('✅ Одобрено');} }
-        function rejectItem(id) { let i=items.find(x=>x.id===id); if(i){i.moderation='rejected'; if(i.premium){let s=users[i.sellerId]; if(s)s.stars+=15;} saveData(); render(); showAdmin(); toast('❌ Отклонено');} }
-        function blockUser(uid) { let u=users[uid]; if(u && u.id!==userId){u.status='blocked'; u.block_reason='Нарушение правил'; saveData(); showAdmin(); toast(`🔨 ${u.name} заблокирован`);} }
-        function addStarsToUser(uid) { let amount = prompt('Сколько Stars начислить?'); if(amount && amount>0){users[uid].stars += parseInt(amount); saveData(); showAdmin(); toast(`✅ Начислено ${amount} ⭐`);} }
-        function resolveReport(id) { reports = reports.filter(r=>r.id!==id); localStorage.setItem('avito_reports', JSON.stringify(reports)); showAdmin(); toast('✅ Жалоба обработана'); }
+        function approveItem(id) {
+            const i = items.find(x => x.id === id);
+            if (i) {
+                i.moderation = 'approved';
+                saveData();
+                render();
+                showAdmin();
+                toast('✅ Товар одобрен');
+            }
+        }
+        function rejectItem(id) {
+            const i = items.find(x => x.id === id);
+            if (i) {
+                if (i.premium) {
+                    const seller = users[i.sellerId];
+                    if (seller) seller.stars += 15;
+                }
+                items = items.filter(x => x.id !== id);
+                saveData();
+                render();
+                showAdmin();
+                toast('❌ Товар отклонён');
+            }
+        }
 
-        function toggleTheme() { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark')?'dark':'light'); }
+        // ---------- Прочее ----------
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
         function toggleMenu() { document.getElementById('menu').classList.toggle('show'); }
         function closeMenu() { document.getElementById('menu').classList.remove('show'); }
-        function hideToast() { document.getElementById('toast').classList.remove('show'); }
 
-        // Инициализация (удаляем тестовые товары)
-        if(items.length > 0) items = [];
-        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+        // ---------- Инициализация ----------
+        function initFilters() {
+            const row = document.getElementById('filterRow');
+            row.innerHTML = '<span class="filter active" data-cat="all" onclick="filterCat(\'all\')">🌟 Все</span>' +
+                CATEGORIES.map(c => `<span class="filter" data-cat="${c.id}" onclick="filterCat('${c.id}')">${c.name}</span>`).join('');
+        }
+
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
 
         window.onload = () => {
-            renderFilters();
+            initFilters();
             render();
             updateUI();
             document.getElementById('addCategory').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            document.addEventListener('click', (e) => { let m = document.getElementById('menu'); if(m && !m.contains(e.target) && !e.target.closest('.profile') && !e.target.closest('.nav-item')) m.classList.remove('show'); });
+            document.addEventListener('click', (e) => {
+                const menu = document.getElementById('menu');
+                if (menu && !menu.contains(e.target) && !e.target.closest('.profile')) menu.classList.remove('show');
+            });
             toast(`👋 Добро пожаловать, ${currentUser.name}!`);
         };
     </script>
