@@ -42,6 +42,32 @@
             padding-bottom: 80px;
             transition: background 0.3s;
         }
+        .blocked-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            text-align: center;
+            padding: 20px;
+        }
+        .blocked-screen .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        .blocked-screen .reason {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
         header {
             position: sticky;
             top: 0;
@@ -262,6 +288,10 @@
             background: var(--chip);
             color: var(--text);
         }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
         .photo-preview {
             width: 100%;
             max-height: 150px;
@@ -335,6 +365,39 @@
         #toast.show {
             display: block;
         }
+        .referral-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: var(--chip);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        .referral-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            overflow: hidden;
+        }
+        .referral-info {
+            flex: 1;
+        }
+        .referral-name {
+            font-weight: 600;
+        }
+        .referral-badge {
+            background: var(--gold);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -370,6 +433,7 @@
         <div class="btn btn-outline" style="margin-top: 20px;" onclick="closeMenu()">Закрыть</div>
     </div>
 
+    <!-- Модалки -->
     <div id="starsModal" class="modal">
         <div class="modal-header"><h2>⭐ Баланс Stars</h2><button onclick="closeStars()">✖</button></div>
         <div class="modal-content">
@@ -428,13 +492,67 @@
         <div class="modal-content" id="chatDetailContent"></div>
     </div>
 
+    <div id="referralsModal" class="modal">
+        <div class="modal-header"><h2>👥 Реферальная программа</h2><button onclick="closeReferrals()">✖</button></div>
+        <div class="modal-content">
+            <div style="background:var(--gold); padding:20px; border-radius:16px; text-align:center; margin-bottom:20px;">
+                <div style="font-size:32px; font-weight:800;">+15 ⭐</div>
+                <div>за каждого приглашённого друга</div>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+                <label>Ваша реферальная ссылка</label>
+                <input type="text" id="referralLink" readonly style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); cursor:pointer;">
+            </div>
+            <div style="display:flex; gap:12px; margin-bottom:20px;">
+                <div style="flex:1; background:var(--chip); padding:12px; border-radius:12px; text-align:center;">
+                    <div id="referralCount" style="font-size:24px; font-weight:800;">0</div>
+                    <div>Приглашено</div>
+                </div>
+                <div style="flex:1; background:var(--chip); padding:12px; border-radius:12px; text-align:center;">
+                    <div id="referralEarned" style="font-size:24px; font-weight:800;">0</div>
+                    <div>Заработано ⭐</div>
+                </div>
+            </div>
+            <h3>Ваши рефералы</h3>
+            <div id="referralList"></div>
+        </div>
+    </div>
+
     <div id="adminModal" class="modal">
         <div class="modal-header"><h2>🛠 Админ-панель</h2><button onclick="closeAdmin()">✖</button></div>
         <div class="modal-content">
-            <div id="adminStats"></div>
-            <hr><br>
-            <h4>⏳ Ожидают модерации</h4>
+            <div id="adminStats" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;"></div>
+            <h3>⏳ На модерации</h3>
             <div id="moderationListAdmin"></div>
+            <h3>👥 Пользователи</h3>
+            <div id="usersListAdmin"></div>
+        </div>
+    </div>
+
+    <div id="moderateModal" class="modal">
+        <div class="modal-header"><h2>Модерация товара</h2><button onclick="closeModerate()">✖</button></div>
+        <div class="modal-content">
+            <div id="moderateContent"></div>
+            <div style="margin:16px 0;">
+                <label>Причина отказа (если отклоняете)</label>
+                <textarea id="rejectReason" rows="3" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:8px;"></textarea>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button class="btn btn-primary" onclick="approveItem()">✅ Одобрить</button>
+                <button class="btn btn-danger" onclick="rejectItemWithReason()">❌ Отклонить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="blockModal" class="modal">
+        <div class="modal-header"><h2>Блокировка пользователя</h2><button onclick="closeBlock()">✖</button></div>
+        <div class="modal-content">
+            <div id="blockUserInfo"></div>
+            <div style="margin:16px 0;">
+                <label>Причина блокировки</label>
+                <textarea id="blockReason" rows="3" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:8px;"></textarea>
+            </div>
+            <button class="btn btn-danger" onclick="confirmBlock()">🔨 Заблокировать</button>
         </div>
     </div>
 
@@ -447,11 +565,12 @@
         tg.expand();
 
         // ---------- Конфигурация ----------
-        const MY_ADMIN_ID = 5697184715;   // ЗАМЕНИТЕ НА СВОЙ ID (узнать у @userinfobot)
+        const MY_ADMIN_ID = 5697184715;   // ЗАМЕНИТЕ НА СВОЙ ID
         const CATEGORIES = [
             {id:'auto', name:'🚗 Авто'}, {id:'re', name:'🏠 Недвижимость'},
             {id:'electr', name:'💻 Техника'}, {id:'hobby', name:'🎸 Хобби'},
-            {id:'other', name:'📦 Прочее'}
+            {id:'games', name:'🎮 Игры'}, {id:'photo', name:'📸 Фото/Видео'},
+            {id:'sport', name:'⚽ Спорт'}, {id:'other', name:'📦 Прочее'}
         ];
 
         // ---------- Данные пользователя ----------
@@ -464,7 +583,6 @@
         const userId = user.id.toString();
         const isAdmin = (userId === MY_ADMIN_ID.toString());
 
-        // Загрузка/инициализация пользователя
         let users = JSON.parse(localStorage.getItem('avito_users')) || {};
         let currentUser = users[userId];
         if (!currentUser) {
@@ -476,18 +594,33 @@
                 stars: 100,
                 spent: 0,
                 role: isAdmin ? 'admin' : 'user',
+                status: 'active',
+                blockReason: '',
                 referrals: [],
-                bio: ''
+                registered: new Date().toLocaleDateString()
             };
             users[userId] = currentUser;
             localStorage.setItem('avito_users', JSON.stringify(users));
         } else {
-            // обновим данные на случай смены имени
+            // Обновляем данные на случай смены имени/аватарки
             currentUser.name = `${user.first_name || ''} ${user.last_name || ''}`.trim() || currentUser.name;
             currentUser.login = user.username ? `@${user.username}` : currentUser.login;
             if (user.photo_url) currentUser.avatar = `<img src="${user.photo_url}">`;
             users[userId] = currentUser;
             localStorage.setItem('avito_users', JSON.stringify(users));
+        }
+
+        // Проверка блокировки
+        if (currentUser.status === 'blocked') {
+            document.body.innerHTML = `
+                <div class="blocked-screen">
+                    <div class="icon">⛔</div>
+                    <h2>Доступ заблокирован</h2>
+                    <div class="reason">${currentUser.blockReason || 'Нарушение правил платформы'}</div>
+                    <div style="margin-top:20px;">По вопросам: @avito_vidnoe_support</div>
+                </div>
+            `;
+            throw new Error('User blocked');
         }
 
         let items = JSON.parse(localStorage.getItem('avito_items')) || [];
@@ -808,13 +941,33 @@
         }
         function closeChats() { document.getElementById('chatsModal').classList.remove('active'); }
 
-        // ---------- Рефералы ----------
+        // ---------- Реферальная система ----------
         function showReferrals() {
             const refLink = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
-            navigator.clipboard.writeText(refLink);
-            toast('✅ Ссылка скопирована! Отправьте другу.');
+            document.getElementById('referralLink').value = refLink;
+            document.getElementById('referralLink').onclick = function() {
+                this.select();
+                navigator.clipboard.writeText(this.value);
+                toast('✅ Ссылка скопирована');
+            };
+            const referrals = currentUser.referrals || [];
+            document.getElementById('referralCount').innerText = referrals.length;
+            document.getElementById('referralEarned').innerText = referrals.length * 15;
+            const listHtml = referrals.map(ref => `
+                <div class="referral-item">
+                    <div class="referral-avatar">${ref.avatar || '👤'}</div>
+                    <div class="referral-info">
+                        <div class="referral-name">${ref.name}</div>
+                        <div class="referral-meta">${ref.date || ''}</div>
+                    </div>
+                    <div class="referral-badge">+15 ⭐</div>
+                </div>
+            `).join('');
+            document.getElementById('referralList').innerHTML = listHtml || 'Пока нет приглашённых';
+            document.getElementById('referralsModal').classList.add('active');
             closeMenu();
         }
+        function closeReferrals() { document.getElementById('referralsModal').classList.remove('active'); }
 
         // ---------- Мои товары ----------
         function showMyItems() {
@@ -826,6 +979,7 @@
                         <div style="font-weight:700;">${i.title}</div>
                         <div>${i.price.toLocaleString()} ₽</div>
                         <div style="font-size:11px; color:var(--text-light);">Статус: ${i.moderation === 'pending' ? '⏳ На модерации' : i.moderation === 'approved' ? '✅ Активен' : '❌ Отклонён'}</div>
+                        ${i.rejectReason ? `<div style="font-size:11px; color:var(--danger);">Причина: ${i.rejectReason}</div>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -836,45 +990,143 @@
         function closeMyItems() { document.getElementById('myItemsModal').classList.remove('active'); }
 
         // ---------- Админка ----------
+        let currentModerateItem = null;
         function showAdmin() {
             if (!isAdmin) { toast('⛔ Доступ запрещён'); return; }
+            const usersCount = Object.keys(users).length;
+            const totalRecharges = transactions.reduce((sum, t) => t.amount > 0 ? sum + t.amount : sum, 0);
+            document.getElementById('adminStats').innerHTML = `
+                <div style="background:var(--chip); padding:12px; border-radius:12px;"><div style="font-weight:800;">👥 Пользователей</div><div>${usersCount}</div></div>
+                <div style="background:var(--chip); padding:12px; border-radius:12px;"><div style="font-weight:800;">💰 Всего пополнений</div><div>${totalRecharges} ⭐</div></div>
+            `;
+
             const pending = items.filter(i => i.moderation === 'pending');
-            document.getElementById('adminStats').innerHTML = `Всего товаров: ${items.length} | На модерации: ${pending.length}`;
             document.getElementById('moderationListAdmin').innerHTML = pending.map(i => `
                 <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px;">
                     <b>${i.title}</b> (${i.price} ₽)<br>
                     👤 ${i.sellerName}<br>
-                    <button class="btn btn-primary" style="margin-top:8px; padding:8px;" onclick="approveItem(${i.id})">✅ Одобрить</button>
-                    <button class="btn btn-outline" style="margin-top:8px; padding:8px;" onclick="rejectItem(${i.id})">❌ Отклонить</button>
+                    <button class="btn btn-primary" style="margin-top:8px; padding:8px;" onclick="openModerate(${i.id})">🔍 Рассмотреть</button>
                 </div>
             `).join('') || 'Нет заявок';
+
+            const allUsers = Object.values(users);
+            document.getElementById('usersListAdmin').innerHTML = allUsers.map(u => `
+                <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="profile" style="width:40px; height:40px;">${u.avatar}</div>
+                        <div style="flex:1;">
+                            <b>${u.name}</b> (${u.login})<br>
+                            ⭐ ${u.stars} | Статус: ${u.status === 'active' ? '✅ Активен' : '🚫 Заблокирован'}
+                            ${u.blockReason ? `<div style="font-size:11px; color:var(--danger);">Причина: ${u.blockReason}</div>` : ''}
+                        </div>
+                        ${u.id !== userId ? `
+                            <button class="btn btn-outline" style="padding:6px 12px;" onclick="openBlockUser('${u.id}')">${u.status === 'active' ? '🔨 Заблокировать' : '🔓 Разблокировать'}</button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
             document.getElementById('adminModal').classList.add('active');
             closeMenu();
         }
         function closeAdmin() { document.getElementById('adminModal').classList.remove('active'); }
-        function approveItem(id) {
-            const i = items.find(x => x.id === id);
-            if (i) {
-                i.moderation = 'approved';
-                saveData();
-                render();
-                showAdmin();
-                toast('✅ Товар одобрен');
+
+        function openModerate(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+            currentModerateItem = item;
+            document.getElementById('moderateContent').innerHTML = `
+                <img src="${item.photo}" style="width:100%; border-radius:16px; margin-bottom:16px;">
+                <h3>${item.title}</h3>
+                <p><strong>Цена:</strong> ${item.price.toLocaleString()} ₽</p>
+                <p><strong>Категория:</strong> ${CATEGORIES.find(c => c.id === item.category)?.name || item.category}</p>
+                <p><strong>Описание:</strong><br>${item.description}</p>
+                <p><strong>Продавец:</strong> ${item.sellerName}</p>
+                <p><strong>Дата:</strong> ${item.time}</p>
+                ${item.premium ? '<p style="color:var(--gold);">⭐ Премиум объявление</p>' : ''}
+            `;
+            document.getElementById('moderateModal').classList.add('active');
+        }
+        function closeModerate() { document.getElementById('moderateModal').classList.remove('active'); currentModerateItem = null; }
+
+        function approveItem() {
+            if (!currentModerateItem) return;
+            currentModerateItem.moderation = 'approved';
+            saveData();
+            render();
+            closeModerate();
+            showAdmin();
+            toast('✅ Товар одобрен');
+        }
+
+        function rejectItemWithReason() {
+            if (!currentModerateItem) return;
+            const reason = document.getElementById('rejectReason').value.trim();
+            if (!reason) {
+                toast('❌ Укажите причину отказа');
+                return;
+            }
+            // Возвращаем звёзды, если товар был премиумным
+            if (currentModerateItem.premium) {
+                const seller = users[currentModerateItem.sellerId];
+                if (seller) {
+                    seller.stars += 15;
+                    // Добавляем транзакцию
+                    const trans = JSON.parse(localStorage.getItem(`avito_trans_${currentModerateItem.sellerId}`) || '[]');
+                    trans.unshift({ desc: `Возврат за отклонённый премиум: ${currentModerateItem.title}`, date: new Date().toLocaleDateString(), amount: 15 });
+                    localStorage.setItem(`avito_trans_${currentModerateItem.sellerId}`, JSON.stringify(trans));
+                    saveData();
+                }
+            }
+            currentModerateItem.moderation = 'rejected';
+            currentModerateItem.rejectReason = reason;
+            items = items.filter(i => i.id !== currentModerateItem.id);
+            saveData();
+            render();
+            closeModerate();
+            showAdmin();
+            toast('❌ Товар отклонён');
+        }
+
+        // Блокировка пользователя
+        let currentBlockUserId = null;
+        function openBlockUser(uid) {
+            const u = users[uid];
+            if (!u) return;
+            currentBlockUserId = uid;
+            document.getElementById('blockUserInfo').innerHTML = `
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="profile" style="width:40px; height:40px;">${u.avatar}</div>
+                    <div><b>${u.name}</b> (${u.login})</div>
+                </div>
+            `;
+            if (u.status === 'blocked') {
+                document.getElementById('blockModal').classList.add('active');
+                document.getElementById('blockReason').value = u.blockReason || '';
+                document.querySelector('#blockModal .btn-danger').innerText = '🔓 Разблокировать';
+            } else {
+                document.getElementById('blockModal').classList.add('active');
+                document.getElementById('blockReason').value = '';
+                document.querySelector('#blockModal .btn-danger').innerText = '🔨 Заблокировать';
             }
         }
-        function rejectItem(id) {
-            const i = items.find(x => x.id === id);
-            if (i) {
-                if (i.premium) {
-                    const seller = users[i.sellerId];
-                    if (seller) seller.stars += 15;
-                }
-                items = items.filter(x => x.id !== id);
-                saveData();
-                render();
-                showAdmin();
-                toast('❌ Товар отклонён');
+        function closeBlock() { document.getElementById('blockModal').classList.remove('active'); currentBlockUserId = null; }
+        function confirmBlock() {
+            const u = users[currentBlockUserId];
+            if (!u) return;
+            const reason = document.getElementById('blockReason').value.trim();
+            if (u.status === 'active') {
+                if (!reason) { toast('❌ Укажите причину блокировки'); return; }
+                u.status = 'blocked';
+                u.blockReason = reason;
+                toast(`🔨 ${u.name} заблокирован`);
+            } else {
+                u.status = 'active';
+                u.blockReason = '';
+                toast(`✅ ${u.name} разблокирован`);
             }
+            saveData();
+            closeBlock();
+            showAdmin();
         }
 
         // ---------- Прочее ----------
