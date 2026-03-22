@@ -458,6 +458,10 @@
             font-size: 12px;
             width: auto;
         }
+        .error-input {
+            border-color: var(--danger) !important;
+            background-color: rgba(255,59,48,0.1) !important;
+        }
     </style>
 </head>
 <body>
@@ -707,7 +711,7 @@
     let chats = JSON.parse(localStorage.getItem(`avito_chats_${userId}`)) || [];
     let transactions = JSON.parse(localStorage.getItem(`avito_trans_${userId}`)) || [];
 
-    // Создаём системный чат
+    // Создаём системный чат для текущего пользователя
     let systemChat = chats.find(c => c.with === SYSTEM_USER_ID);
     if (!systemChat) {
         systemChat = {
@@ -766,10 +770,10 @@
         document.getElementById('menuChats').innerText = chats.length;
     }
 
-    // ---------- Системные уведомления ----------
-    function sendSystemNotification(userId, message) {
-        // Находим чат этого пользователя с системой
-        let userChats = JSON.parse(localStorage.getItem(`avito_chats_${userId}`) || '[]');
+    // ---------- Системные уведомления (в чат) ----------
+    function sendSystemNotification(targetUserId, message) {
+        // Получаем чаты целевого пользователя
+        let userChats = JSON.parse(localStorage.getItem(`avito_chats_${targetUserId}`) || '[]');
         let sysChat = userChats.find(c => c.with === SYSTEM_USER_ID);
         if (!sysChat) {
             sysChat = {
@@ -786,19 +790,29 @@
             time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
             type: 'system'
         });
-        localStorage.setItem(`avito_chats_${userId}`, JSON.stringify(userChats));
+        localStorage.setItem(`avito_chats_${targetUserId}`, JSON.stringify(userChats));
     }
 
-    // ---------- Stars (демо-режим) ----------
+    // ---------- Stars (реальная оплата) ----------
     function buyStars(amount) {
-        if (confirm(`💰 Демо-режим: начислить ${amount} ⭐? (реальная оплата будет позже)`)) {
-            currentUser.stars += amount;
-            transactions.unshift({ desc: `Покупка ${amount} ⭐ (демо)`, date: new Date().toLocaleDateString(), amount });
-            saveData();
-            updateUI();
-            toast(`✅ +${amount} ⭐ (демо)`);
-            closeStars();
-        }
+        tg.sendInvoice(
+            `Покупка ${amount} Stars`,
+            `Пополнение баланса для продвижения`,
+            `stars_${userId}_${Date.now()}`,
+            "",
+            "XTR",
+            [{ label: `${amount} Stars`, amount: amount }]
+        );
+        tg.onEvent('invoiceClosed', (invoice) => {
+            if (invoice.status === 'paid') {
+                currentUser.stars += amount;
+                transactions.unshift({ desc: `Покупка ${amount} ⭐`, date: new Date().toLocaleDateString(), amount });
+                saveData();
+                updateUI();
+                toast(`✅ +${amount} ⭐`);
+                closeStars();
+            } else toast('❌ Оплата отменена');
+        });
     }
 
     function buyCustomStars() {
@@ -818,11 +832,8 @@
 
     // ---------- Подсчёт лайков (глобальный) ----------
     function recalcLikes() {
-        // Для каждого товара пересчитываем количество лайков из всех избранных
         for (let item of items) {
             let count = 0;
-            // Получаем все избранные из localStorage для всех пользователей
-            // Для простоты будем перебирать всех пользователей в users
             for (let uid in users) {
                 let favs = JSON.parse(localStorage.getItem(`avito_fav_${uid}`) || '[]');
                 if (favs.includes(item.id)) count++;
@@ -903,6 +914,19 @@
         }
     }
 
+    // ---------- Подсветка полей ----------
+    function validateAddForm() {
+        let valid = true;
+        const title = document.getElementById('addTitle');
+        const price = document.getElementById('addPrice');
+        const desc = document.getElementById('addDesc');
+        if (!title.value.trim()) { title.classList.add('error-input'); valid = false; } else title.classList.remove('error-input');
+        if (!price.value || parseInt(price.value) <= 0) { price.classList.add('error-input'); valid = false; } else price.classList.remove('error-input');
+        if (!desc.value.trim()) { desc.classList.add('error-input'); valid = false; } else desc.classList.remove('error-input');
+        if (!valid) toast('❌ Заполните все обязательные поля');
+        return valid;
+    }
+
     // ---------- Добавление/редактирование товара ----------
     let editingItemId = null;
     function openAdd(itemId = null) {
@@ -944,26 +968,17 @@
     function closeAdd() { document.getElementById('addModal').classList.remove('active'); editingItemId = null; }
 
     function submitItem() {
+        if (!validateAddForm()) return;
         const title = document.getElementById('addTitle').value.trim();
         const price = parseInt(document.getElementById('addPrice').value);
         const cat = document.getElementById('addCategory').value;
         const desc = document.getElementById('addDesc').value.trim();
         const isPremium = document.getElementById('addPremium').value === "1";
 
-        if (!title) { toast('❌ Введите название'); return; }
-        if (!price || price <= 0) { toast('❌ Введите корректную цену'); return; }
-        if (!desc) { toast('❌ Введите описание'); return; }
-
         if (isPremium && currentUser.stars < 15) { toast('❌ Недостаточно Stars'); return; }
         if (isPremium) currentUser.stars -= 15;
 
         if (editingItemId) {
-            // Удаляем старую версию
-            const oldItem = items.find(i => i.id === editingItemId);
-            if (oldItem && oldItem.premium && !isPremium) {
-                // Если снимаем премиум, возвращаем звёзды (не возвращаем, чтобы не было злоупотреблений, но можно)
-                // Здесь по желанию
-            }
             items = items.filter(i => i.id !== editingItemId);
         }
 
@@ -977,14 +992,14 @@
             sellerId: userId,
             sellerName: currentUser.name,
             premium: isPremium,
-            moderation: 'pending',   // при редактировании тоже на модерацию
+            moderation: 'pending',
             time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
             views: 0,
             likes: 0
         });
 
         saveData();
-        recalcLikes();   // обновить лайки
+        recalcLikes();
         closeAdd();
         render();
         updateUI();
@@ -1033,7 +1048,7 @@
         if (idx === -1) favorites.push(id);
         else favorites.splice(idx,1);
         saveData();
-        recalcLikes();   // обновить лайки
+        recalcLikes();
         updateUI();
         toast(idx === -1 ? '✅ Добавлено в избранное' : '❌ Удалено');
         render();
@@ -1193,16 +1208,17 @@
     function deleteItem(id) {
         if (confirm('Удалить товар безвозвратно?')) {
             const item = items.find(i => i.id === id);
-            if (item && item.premium) {
-                // Возвращаем звёзды при удалении премиум-товара, который не был продан
+            if (item && item.premium && item.moderation === 'approved') {
                 currentUser.stars += 15;
                 sendSystemNotification(userId, `💰 Вам возвращено 15 ⭐ за удаление премиум-товара "${item.title}"`);
+                saveData();
+                updateUI();
             }
             items = items.filter(i => i.id !== id);
             saveData();
             recalcLikes();
             render();
-            showMyItems(); // обновляем список
+            showMyItems();
             toast('✅ Товар удалён');
         }
     }
@@ -1362,7 +1378,7 @@
             CATEGORIES.map(c => `<span class="filter" data-cat="${c.id}" onclick="filterCat('${c.id}')">${c.name}</span>`).join('');
     }
 
-    recalcLikes();  // один раз при старте
+    recalcLikes();
     if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
 
     window.onload = () => {
