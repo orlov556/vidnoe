@@ -211,10 +211,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 28px;
+            font-weight: 300;
             box-shadow: 0 4px 12px rgba(0,122,255,0.4);
             z-index: 99;
             cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .fab:active {
+            transform: scale(0.94);
         }
         .menu {
             position: fixed;
@@ -247,6 +252,36 @@
             cursor: pointer;
             font-weight: 500;
         }
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .theme-switch {
+            width: 48px;
+            height: 24px;
+            background: var(--chip);
+            border-radius: 40px;
+            position: relative;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+        .theme-switch::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 2px;
+            top: 1px;
+            background: var(--accent);
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        body.dark .theme-switch::before {
+            transform: translateX(22px);
+            background: var(--gold);
+        }
         .modal {
             position: fixed;
             inset: 0;
@@ -266,6 +301,19 @@
             background: var(--card);
             border-bottom: 1px solid var(--border);
         }
+        .modal-header button {
+            background: var(--chip);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .modal-content {
             flex: 1;
             overflow-y: auto;
@@ -278,6 +326,7 @@
             font-weight: 700;
             cursor: pointer;
             text-align: center;
+            transition: 0.2s;
         }
         .btn-primary {
             background: var(--accent);
@@ -337,6 +386,14 @@
             color: white;
             align-self: flex-end;
         }
+        .msg.system {
+            background: var(--chip);
+            color: var(--text-light);
+            font-style: italic;
+            align-self: center;
+            max-width: 90%;
+            text-align: center;
+        }
         .chat-input {
             display: flex;
             gap: 8px;
@@ -385,18 +442,53 @@
             font-weight: bold;
             overflow: hidden;
         }
-        .referral-info {
-            flex: 1;
+        .stars-card {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 24px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: white;
         }
-        .referral-name {
-            font-weight: 600;
+        .stars-amount {
+            font-size: 48px;
+            font-weight: 800;
         }
-        .referral-badge {
-            background: var(--gold);
-            padding: 2px 8px;
+        .stars-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .buy-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .buy-btn {
+            background: var(--accent-soft);
+            color: var(--accent);
+            padding: 12px;
             border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .buy-btn:active {
+            transform: scale(0.96);
+        }
+        .custom-input {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .custom-input input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--input);
+            color: var(--text);
         }
     </style>
 </head>
@@ -428,7 +520,12 @@
         <div class="menu-item" onclick="showFavorites()">❤️ Избранное (<span id="menuFav">0</span>)</div>
         <div class="menu-item" onclick="showChats()">💬 Сообщения (<span id="menuChats">0</span>)</div>
         <div class="menu-item" onclick="showReferrals()">👥 Пригласить друзей</div>
-        <div class="menu-item" onclick="toggleTheme()">🌓 Сменить тему</div>
+        <div class="menu-item" onclick="toggleTheme()">
+            <div class="theme-switch-wrapper">
+                <span>🌓 Сменить тему</span>
+                <div class="theme-switch"></div>
+            </div>
+        </div>
         <div class="menu-item" id="adminMenuItem" style="display:none; color:var(--gold);" onclick="showAdmin()">🛠 Админ-панель</div>
         <div class="btn btn-outline" style="margin-top: 20px;" onclick="closeMenu()">Закрыть</div>
     </div>
@@ -437,9 +534,20 @@
     <div id="starsModal" class="modal">
         <div class="modal-header"><h2>⭐ Баланс Stars</h2><button onclick="closeStars()">✖</button></div>
         <div class="modal-content">
-            <h3>У вас <span id="starsAmount">0</span> ⭐</h3>
-            <input type="number" id="customStars" placeholder="Кол-во (1-5000)" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);">
-            <button class="btn btn-primary" onclick="buyCustomStars()">Купить Stars</button>
+            <div class="stars-card">
+                <div class="stars-amount" id="starsAmount">0</div>
+                <div class="stars-label">доступно Stars</div>
+            </div>
+            <div class="buy-grid">
+                <div class="buy-btn" onclick="buyStars(50)">50 ⭐</div>
+                <div class="buy-btn" onclick="buyStars(100)">100 ⭐</div>
+                <div class="buy-btn" onclick="buyStars(200)">200 ⭐</div>
+                <div class="buy-btn" onclick="buyStars(500)">500 ⭐</div>
+            </div>
+            <div class="custom-input">
+                <input type="number" id="customStars" placeholder="Своё число">
+                <button class="btn btn-primary" style="width: auto; padding: 12px 24px;" onclick="buyCustomStars()">Купить</button>
+            </div>
             <div id="starsHistory" style="margin-top:20px;"></div>
         </div>
     </div>
@@ -457,7 +565,7 @@
                 <img id="photoPreview" class="photo-preview">
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; background:var(--chip); padding:12px; border-radius:12px; margin-bottom:16px;">
-                <span>Премиум (15 ⭐)</span>
+                <span>⭐ Премиум продвижение (15 ⭐)</span>
                 <div id="premiumSwitch" style="width:40px; height:20px; background:#ccc; border-radius:10px; position:relative; cursor:pointer;" onclick="togglePremium()">
                     <div style="width:16px; height:16px; background:white; border-radius:50%; position:absolute; top:2px; left:2px; transition:0.3s;"></div>
                 </div>
@@ -495,7 +603,7 @@
     <div id="referralsModal" class="modal">
         <div class="modal-header"><h2>👥 Реферальная программа</h2><button onclick="closeReferrals()">✖</button></div>
         <div class="modal-content">
-            <div style="background:var(--gold); padding:20px; border-radius:16px; text-align:center; margin-bottom:20px;">
+            <div style="background:linear-gradient(135deg, var(--gold), #e67e22); padding:20px; border-radius:16px; text-align:center; margin-bottom:20px;">
                 <div style="font-size:32px; font-weight:800;">+15 ⭐</div>
                 <div>за каждого приглашённого друга</div>
             </div>
@@ -566,6 +674,10 @@
 
         // ---------- Конфигурация ----------
         const MY_ADMIN_ID = 5697184715;   // ЗАМЕНИТЕ НА СВОЙ ID
+        const SYSTEM_USER_ID = 'system_avito';
+        const SYSTEM_USER_NAME = 'Авито Видное';
+        const SYSTEM_AVATAR = '📢';
+
         const CATEGORIES = [
             {id:'auto', name:'🚗 Авто'}, {id:'re', name:'🏠 Недвижимость'},
             {id:'electr', name:'💻 Техника'}, {id:'hobby', name:'🎸 Хобби'},
@@ -602,12 +714,38 @@
             users[userId] = currentUser;
             localStorage.setItem('avito_users', JSON.stringify(users));
         } else {
-            // Обновляем данные на случай смены имени/аватарки
             currentUser.name = `${user.first_name || ''} ${user.last_name || ''}`.trim() || currentUser.name;
             currentUser.login = user.username ? `@${user.username}` : currentUser.login;
             if (user.photo_url) currentUser.avatar = `<img src="${user.photo_url}">`;
             users[userId] = currentUser;
             localStorage.setItem('avito_users', JSON.stringify(users));
+        }
+
+        // Создаём системного пользователя, если его нет
+        if (!users[SYSTEM_USER_ID]) {
+            users[SYSTEM_USER_ID] = {
+                id: SYSTEM_USER_ID,
+                name: SYSTEM_USER_NAME,
+                login: '@avito_vidnoe',
+                avatar: SYSTEM_AVATAR,
+                stars: 0,
+                role: 'system'
+            };
+            localStorage.setItem('avito_users', JSON.stringify(users));
+        }
+
+        // Создаём системный чат для пользователя, если его нет
+        let systemChat = chats.find(c => c.with === SYSTEM_USER_ID);
+        if (!systemChat) {
+            systemChat = {
+                id: Date.now(),
+                with: SYSTEM_USER_ID,
+                withName: SYSTEM_USER_NAME,
+                withAvatar: SYSTEM_AVATAR,
+                messages: []
+            };
+            chats.push(systemChat);
+            localStorage.setItem(`avito_chats_${userId}`, JSON.stringify(chats));
         }
 
         // Проверка блокировки
@@ -658,6 +796,27 @@
             document.getElementById('menuMyItems').innerText = myCount;
             document.getElementById('menuFav').innerText = favorites.length;
             document.getElementById('menuChats').innerText = chats.length;
+        }
+
+        // ---------- Системные уведомления ----------
+        function sendSystemNotification(message) {
+            let systemChat = chats.find(c => c.with === SYSTEM_USER_ID);
+            if (!systemChat) {
+                systemChat = {
+                    id: Date.now(),
+                    with: SYSTEM_USER_ID,
+                    withName: SYSTEM_USER_NAME,
+                    withAvatar: SYSTEM_AVATAR,
+                    messages: []
+                };
+                chats.push(systemChat);
+            }
+            systemChat.messages.push({
+                text: message,
+                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+                type: 'system'
+            });
+            saveData();
         }
 
         // ---------- Stars (оплата через Telegram) ----------
@@ -834,7 +993,7 @@
                 </div>
                 <div style="margin-top:20px; display:flex; gap:12px;">
                     ${item.sellerId !== userId ? `<button class="btn btn-primary" onclick="openChat('${item.sellerId}')">💬 Написать</button>` : ''}
-                    <button class="btn btn-outline" onclick="toggleFav(${id})">${isFav ? '❤️ В избранном' : '🤍 В избранное'}</button>
+                    <button class="btn btn-outline" id="favBtn-${id}" onclick="toggleFav(${id})">${isFav ? '❤️ В избранном' : '🤍 В избранное'}</button>
                 </div>
             `;
             document.getElementById('detailContent').innerHTML = content;
@@ -850,6 +1009,9 @@
             updateUI();
             toast(idx === -1 ? '✅ Добавлено в избранное' : '❌ Удалено');
             render();
+            // Обновляем кнопку в детальном окне, если оно открыто
+            const favBtn = document.getElementById(`favBtn-${id}`);
+            if (favBtn) favBtn.innerHTML = idx === -1 ? '❤️ В избранном' : '🤍 В избранное';
         }
 
         // ---------- Избранное ----------
@@ -892,11 +1054,15 @@
             document.getElementById('chatDetailModal').classList.add('active');
         }
         function renderChatModal() {
+            const messagesHtml = currentChat.messages.map(m => {
+                if (m.type === 'system') {
+                    return `<div class="msg system">📢 ${m.text}<small>${m.time}</small></div>`;
+                }
+                return `<div class="msg ${m.type}">${m.text}<small>${m.time}</small></div>`;
+            }).join('');
             const html = `
                 <div class="chat-messages" id="chatMessages">
-                    ${currentChat.messages.map(m => `
-                        <div class="msg ${m.type}">${m.text}<small>${m.time}</small></div>
-                    `).join('')}
+                    ${messagesHtml}
                 </div>
                 <div class="chat-input">
                     <input type="text" id="chatInput" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendChatMessage()">
@@ -993,7 +1159,7 @@
         let currentModerateItem = null;
         function showAdmin() {
             if (!isAdmin) { toast('⛔ Доступ запрещён'); return; }
-            const usersCount = Object.keys(users).length;
+            const usersCount = Object.keys(users).filter(uid => uid !== SYSTEM_USER_ID).length;
             const totalRecharges = transactions.reduce((sum, t) => t.amount > 0 ? sum + t.amount : sum, 0);
             document.getElementById('adminStats').innerHTML = `
                 <div style="background:var(--chip); padding:12px; border-radius:12px;"><div style="font-weight:800;">👥 Пользователей</div><div>${usersCount}</div></div>
@@ -1009,7 +1175,7 @@
                 </div>
             `).join('') || 'Нет заявок';
 
-            const allUsers = Object.values(users);
+            const allUsers = Object.values(users).filter(u => u.id !== SYSTEM_USER_ID && u.id !== userId);
             document.getElementById('usersListAdmin').innerHTML = allUsers.map(u => `
                 <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px;">
                     <div style="display:flex; align-items:center; gap:12px;">
@@ -1019,9 +1185,7 @@
                             ⭐ ${u.stars} | Статус: ${u.status === 'active' ? '✅ Активен' : '🚫 Заблокирован'}
                             ${u.blockReason ? `<div style="font-size:11px; color:var(--danger);">Причина: ${u.blockReason}</div>` : ''}
                         </div>
-                        ${u.id !== userId ? `
-                            <button class="btn btn-outline" style="padding:6px 12px;" onclick="openBlockUser('${u.id}')">${u.status === 'active' ? '🔨 Заблокировать' : '🔓 Разблокировать'}</button>
-                        ` : ''}
+                        <button class="btn btn-outline" style="padding:6px 12px;" onclick="openBlockUser('${u.id}')">${u.status === 'active' ? '🔨 Заблокировать' : '🔓 Разблокировать'}</button>
                     </div>
                 </div>
             `).join('');
@@ -1056,6 +1220,8 @@
             closeModerate();
             showAdmin();
             toast('✅ Товар одобрен');
+            // Отправляем уведомление продавцу
+            sendSystemNotification(`✅ Ваш товар "${currentModerateItem.title}" одобрен и опубликован!`);
         }
 
         function rejectItemWithReason() {
@@ -1070,7 +1236,6 @@
                 const seller = users[currentModerateItem.sellerId];
                 if (seller) {
                     seller.stars += 15;
-                    // Добавляем транзакцию
                     const trans = JSON.parse(localStorage.getItem(`avito_trans_${currentModerateItem.sellerId}`) || '[]');
                     trans.unshift({ desc: `Возврат за отклонённый премиум: ${currentModerateItem.title}`, date: new Date().toLocaleDateString(), amount: 15 });
                     localStorage.setItem(`avito_trans_${currentModerateItem.sellerId}`, JSON.stringify(trans));
@@ -1085,6 +1250,8 @@
             closeModerate();
             showAdmin();
             toast('❌ Товар отклонён');
+            // Отправляем уведомление продавцу с причиной
+            sendSystemNotification(`❌ Ваш товар "${currentModerateItem.title}" отклонён.\nПричина: ${reason}`);
         }
 
         // Блокировка пользователя
@@ -1119,10 +1286,13 @@
                 u.status = 'blocked';
                 u.blockReason = reason;
                 toast(`🔨 ${u.name} заблокирован`);
+                // Отправляем уведомление заблокированному
+                sendSystemNotification(`🚫 Вы заблокированы администратором.\nПричина: ${reason}\nПо вопросам: @avito_vidnoe_support`);
             } else {
                 u.status = 'active';
                 u.blockReason = '';
                 toast(`✅ ${u.name} разблокирован`);
+                sendSystemNotification(`✅ Ваша блокировка снята. Теперь вы снова можете пользоваться платформой.`);
             }
             saveData();
             closeBlock();
