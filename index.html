@@ -502,7 +502,7 @@
     <div class="btn btn-outline" style="margin-top: 20px;" onclick="closeMenu()">Закрыть</div>
 </div>
 
-<!-- Модалки -->
+<!-- Stars Modal -->
 <div id="starsModal" class="modal">
     <div class="modal-header"><h2>⭐ Баланс Stars</h2><button onclick="closeStars()">✖</button></div>
     <div class="modal-content">
@@ -524,6 +524,7 @@
     </div>
 </div>
 
+<!-- Add Modal -->
 <div id="addModal" class="modal">
     <div class="modal-header"><h2 id="modalTitle">Новое объявление</h2><button onclick="closeAdd()">✖</button></div>
     <div class="modal-content">
@@ -547,31 +548,37 @@
     </div>
 </div>
 
+<!-- Detail Modal -->
 <div id="detailModal" class="modal">
     <div class="modal-header"><h2>Детали товара</h2><button onclick="closeDetail()">✖</button></div>
     <div class="modal-content" id="detailContent"></div>
 </div>
 
+<!-- My Items Modal -->
 <div id="myItemsModal" class="modal">
     <div class="modal-header"><h2>📦 Мои товары</h2><button onclick="closeMyItems()">✖</button></div>
     <div class="modal-content" id="myItemsList"></div>
 </div>
 
+<!-- Favorites Modal -->
 <div id="favoritesModal" class="modal">
     <div class="modal-header"><h2>❤️ Избранное</h2><button onclick="closeFavorites()">✖</button></div>
     <div class="modal-content" id="favoritesList"></div>
 </div>
 
+<!-- Chats Modal -->
 <div id="chatsModal" class="modal">
     <div class="modal-header"><h2>💬 Чаты</h2><button onclick="closeChats()">✖</button></div>
     <div class="modal-content" id="chatsList"></div>
 </div>
 
+<!-- Chat Detail Modal -->
 <div id="chatDetailModal" class="modal">
     <div class="modal-header"><h2>Чат</h2><button onclick="closeChatDetail()">✖</button></div>
     <div class="modal-content" id="chatDetailContent"></div>
 </div>
 
+<!-- Referrals Modal -->
 <div id="referralsModal" class="modal">
     <div class="modal-header"><h2>👥 Реферальная программа</h2><button onclick="closeReferrals()">✖</button></div>
     <div class="modal-content">
@@ -598,6 +605,7 @@
     </div>
 </div>
 
+<!-- Admin Modal -->
 <div id="adminModal" class="modal">
     <div class="modal-header"><h2>🛠 Админ-панель</h2><button onclick="closeAdmin()">✖</button></div>
     <div class="modal-content">
@@ -609,6 +617,7 @@
     </div>
 </div>
 
+<!-- Moderate Modal -->
 <div id="moderateModal" class="modal">
     <div class="modal-header"><h2>Модерация товара</h2><button onclick="closeModerate()">✖</button></div>
     <div class="modal-content">
@@ -624,6 +633,7 @@
     </div>
 </div>
 
+<!-- Block Modal -->
 <div id="blockModal" class="modal">
     <div class="modal-header"><h2>Блокировка пользователя</h2><button onclick="closeBlock()">✖</button></div>
     <div class="modal-content">
@@ -711,7 +721,7 @@
     let chats = JSON.parse(localStorage.getItem(`avito_chats_${userId}`)) || [];
     let transactions = JSON.parse(localStorage.getItem(`avito_trans_${userId}`)) || [];
 
-    // Создаём системный чат для текущего пользователя
+    // Создаём системный чат
     let systemChat = chats.find(c => c.with === SYSTEM_USER_ID);
     if (!systemChat) {
         systemChat = {
@@ -725,7 +735,6 @@
         localStorage.setItem(`avito_chats_${userId}`, JSON.stringify(chats));
     }
 
-    // Проверка блокировки
     if (currentUser.status === 'blocked') {
         document.body.innerHTML = `
             <div class="blocked-screen">
@@ -761,622 +770,121 @@
         document.getElementById('menuAvatar').innerHTML = currentUser.avatar;
         document.getElementById('menuName').innerText = currentUser.name;
         document.getElementById('menuLogin').innerText = currentUser.login;
-
         if (isAdmin) document.getElementById('adminMenuItem').style.display = 'flex';
-
         const myCount = items.filter(i => i.sellerId === userId && i.moderation === 'approved').length;
         document.getElementById('menuMyItems').innerText = myCount;
         document.getElementById('menuFav').innerText = favorites.length;
         document.getElementById('menuChats').innerText = chats.length;
     }
 
-    // ---------- Системные уведомления (в чат) ----------
     function sendSystemNotification(targetUserId, message) {
-        // Получаем чаты целевого пользователя
         let userChats = JSON.parse(localStorage.getItem(`avito_chats_${targetUserId}`) || '[]');
         let sysChat = userChats.find(c => c.with === SYSTEM_USER_ID);
         if (!sysChat) {
-            sysChat = {
-                id: Date.now(),
-                with: SYSTEM_USER_ID,
-                withName: SYSTEM_USER_NAME,
-                withAvatar: SYSTEM_AVATAR,
-                messages: []
-            };
+            sysChat = { id: Date.now(), with: SYSTEM_USER_ID, withName: SYSTEM_USER_NAME, withAvatar: SYSTEM_AVATAR, messages: [] };
             userChats.push(sysChat);
         }
-        sysChat.messages.push({
-            text: message,
-            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-            type: 'system'
-        });
+        sysChat.messages.push({ text: message, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), type: 'system' });
         localStorage.setItem(`avito_chats_${targetUserId}`, JSON.stringify(userChats));
     }
 
-    // ---------- Stars (реальная оплата) ----------
+    // ---------- Stars (РЕАЛЬНАЯ ОПЛАТА) ----------
+    let pendingPayment = false;
     function buyStars(amount) {
+        if (pendingPayment) { toast('⏳ Оплата уже обрабатывается'); return; }
+        pendingPayment = true;
+        const invoiceId = `stars_${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
         tg.sendInvoice(
             `Покупка ${amount} Stars`,
             `Пополнение баланса для продвижения`,
-            `stars_${userId}_${Date.now()}`,
+            invoiceId,
             "",
             "XTR",
             [{ label: `${amount} Stars`, amount: amount }]
         );
         tg.onEvent('invoiceClosed', (invoice) => {
+            pendingPayment = false;
             if (invoice.status === 'paid') {
                 currentUser.stars += amount;
-                transactions.unshift({ desc: `Покупка ${amount} ⭐`, date: new Date().toLocaleDateString(), amount });
-                saveData();
-                updateUI();
-                toast(`✅ +${amount} ⭐`);
+                transactions.unshift({ id: Date.now(), desc: `Покупка ${amount} ⭐`, date: new Date().toLocaleDateString(), amount });
+                saveData(); updateUI();
+                sendSystemNotification(userId, `💰 Пополнение баланса: +${amount} ⭐. Новый баланс: ${currentUser.stars} ⭐`);
+                toast(`✅ +${amount} ⭐ успешно зачислено!`);
                 closeStars();
-            } else toast('❌ Оплата отменена');
+            } else if (invoice.status === 'failed') toast('❌ Ошибка оплаты');
+            else if (invoice.status === 'cancelled') toast('❌ Оплата отменена');
         });
     }
-
-    function buyCustomStars() {
-        let a = parseInt(document.getElementById('customStars').value);
-        if (a > 0 && a <= 5000) buyStars(a);
-        else toast('❌ Введите число от 1 до 5000');
-    }
-
-    function showStars() {
-        document.getElementById('starsAmount').innerText = currentUser.stars;
-        const hist = transactions.slice(0,10).map(t => `<div>${t.desc} — ${t.amount} ⭐<br><small>${t.date}</small></div>`).join('');
-        document.getElementById('starsHistory').innerHTML = hist || 'Нет операций';
-        document.getElementById('starsModal').classList.add('active');
-        closeMenu();
-    }
+    function buyCustomStars() { let a = parseInt(document.getElementById('customStars').value); if (a > 0 && a <= 5000) buyStars(a); else toast('❌ Введите число от 1 до 5000'); }
+    function showStars() { document.getElementById('starsAmount').innerText = currentUser.stars; const hist = transactions.slice(0,10).map(t => `<div>${t.desc} — ${t.amount} ⭐<br><small>${t.date}</small></div>`).join(''); document.getElementById('starsHistory').innerHTML = hist || 'Нет операций'; document.getElementById('starsModal').classList.add('active'); closeMenu(); }
     function closeStars() { document.getElementById('starsModal').classList.remove('active'); }
 
-    // ---------- Подсчёт лайков (глобальный) ----------
-    function recalcLikes() {
-        for (let item of items) {
-            let count = 0;
-            for (let uid in users) {
-                let favs = JSON.parse(localStorage.getItem(`avito_fav_${uid}`) || '[]');
-                if (favs.includes(item.id)) count++;
-            }
-            item.likes = count;
-        }
-        saveData();
-    }
+    // ---------- Основные функции ----------
+    function recalcLikes() { for (let item of items) { let count = 0; for (let uid in users) { let favs = JSON.parse(localStorage.getItem(`avito_fav_${uid}`) || '[]'); if (favs.includes(item.id)) count++; } item.likes = count; } saveData(); }
 
-    // ---------- Рендер ленты ----------
     let currentCat = 'all', currentSearch = '';
     function render() {
         const feed = document.getElementById('feed');
-        let filtered = items.filter(i =>
-            i.moderation === 'approved' &&
-            (currentCat === 'all' || i.category === currentCat) &&
-            (!currentSearch || i.title.toLowerCase().includes(currentSearch) || i.description.toLowerCase().includes(currentSearch))
-        );
+        let filtered = items.filter(i => i.moderation === 'approved' && (currentCat === 'all' || i.category === currentCat) && (!currentSearch || i.title.toLowerCase().includes(currentSearch) || i.description.toLowerCase().includes(currentSearch)));
         filtered.sort((a,b) => (a.premium && !b.premium) ? -1 : 1);
-
-        feed.innerHTML = filtered.map(i => `
-            <div class="card ${i.premium ? 'premium' : ''}" onclick="openDetail(${i.id})">
-                ${i.premium ? '<div class="premium-badge">⭐ PREMIUM</div>' : ''}
-                <img class="card-img" src="${i.photo || 'https://via.placeholder.com/200?text=Нет+фото'}">
-                <div class="card-content">
-                    <div class="card-price">${i.price.toLocaleString()} ₽</div>
-                    <div class="card-title">${i.title}</div>
-                    <div class="card-meta">👁️ ${i.views || 0} ❤️ ${i.likes || 0} 🕐 ${i.time}</div>
-                </div>
-            </div>
-        `).join('') || '<div style="grid-column:1/3; text-align:center; padding:20px;">Тут пока пусто</div>';
+        feed.innerHTML = filtered.map(i => `<div class="card ${i.premium ? 'premium' : ''}" onclick="openDetail(${i.id})">${i.premium ? '<div class="premium-badge">⭐ PREMIUM</div>' : ''}<img class="card-img" src="${i.photo || 'https://via.placeholder.com/200?text=Нет+фото'}"><div class="card-content"><div class="card-price">${i.price.toLocaleString()} ₽</div><div class="card-title">${i.title}</div><div class="card-meta">👁️ ${i.views || 0} ❤️ ${i.likes || 0} 🕐 ${i.time}</div></div></div>`).join('') || '<div style="grid-column:1/3; text-align:center; padding:20px;">Тут пока пусто</div>';
     }
+    function filterCat(id) { currentCat = id; document.querySelectorAll('.filter').forEach(el => el.classList.toggle('active', el.dataset.cat === id)); render(); }
+    function doSearch() { currentSearch = document.getElementById('searchInput').value.toLowerCase(); render(); }
 
-    function filterCat(id) {
-        currentCat = id;
-        document.querySelectorAll('.filter').forEach(el => el.classList.toggle('active', el.dataset.cat === id));
-        render();
-    }
-
-    function doSearch() {
-        currentSearch = document.getElementById('searchInput').value.toLowerCase();
-        render();
-    }
-
-    // ---------- Работа с фото ----------
     let currentPhotoData = null;
-    function handlePhoto(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = ev => {
-                currentPhotoData = ev.target.result;
-                const preview = document.getElementById('photoPreview');
-                preview.src = ev.target.result;
-                preview.classList.add('show');
-            };
-            reader.readAsDataURL(file);
-        }
-    }
+    function handlePhoto(e) { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = ev => { currentPhotoData = ev.target.result; document.getElementById('photoPreview').src = ev.target.result; document.getElementById('photoPreview').classList.add('show'); }; reader.readAsDataURL(file); } }
 
-    // ---------- Премиум переключатель ----------
-    function togglePremium() {
-        const sw = document.getElementById('premiumSwitch');
-        const input = document.getElementById('addPremium');
-        const dot = sw.querySelector('div');
-        if (input.value === "0") {
-            if (currentUser.stars >= 15) {
-                sw.style.background = "var(--success)";
-                dot.style.left = "22px";
-                input.value = "1";
-            } else {
-                toast('❌ Нужно 15 ⭐. Пополните баланс.');
-            }
-        } else {
-            sw.style.background = "#ccc";
-            dot.style.left = "2px";
-            input.value = "0";
-        }
-    }
+    function togglePremium() { const sw = document.getElementById('premiumSwitch'), input = document.getElementById('addPremium'), dot = sw.querySelector('div'); if (input.value === "0") { if (currentUser.stars >= 15) { sw.style.background = "var(--success)"; dot.style.left = "22px"; input.value = "1"; } else toast('❌ Нужно 15 ⭐. Пополните баланс.'); } else { sw.style.background = "#ccc"; dot.style.left = "2px"; input.value = "0"; } }
 
-    // ---------- Подсветка полей ----------
-    function validateAddForm() {
-        let valid = true;
-        const title = document.getElementById('addTitle');
-        const price = document.getElementById('addPrice');
-        const desc = document.getElementById('addDesc');
-        if (!title.value.trim()) { title.classList.add('error-input'); valid = false; } else title.classList.remove('error-input');
-        if (!price.value || parseInt(price.value) <= 0) { price.classList.add('error-input'); valid = false; } else price.classList.remove('error-input');
-        if (!desc.value.trim()) { desc.classList.add('error-input'); valid = false; } else desc.classList.remove('error-input');
-        if (!valid) toast('❌ Заполните все обязательные поля');
-        return valid;
-    }
-
-    // ---------- Добавление/редактирование товара ----------
     let editingItemId = null;
-    function openAdd(itemId = null) {
-        editingItemId = itemId;
-        document.getElementById('addModal').classList.add('active');
-        document.getElementById('addCategory').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-        if (itemId) {
-            const item = items.find(i => i.id === itemId);
-            if (item) {
-                document.getElementById('modalTitle').innerText = '✏️ Редактировать';
-                document.getElementById('addTitle').value = item.title;
-                document.getElementById('addCategory').value = item.category;
-                document.getElementById('addPrice').value = item.price;
-                document.getElementById('addDesc').value = item.description;
-                if (item.premium) {
-                    document.getElementById('premiumSwitch').style.background = "var(--success)";
-                    document.getElementById('premiumSwitch').querySelector('div').style.left = "22px";
-                    document.getElementById('addPremium').value = "1";
-                }
-                if (item.photo && !item.photo.includes('placeholder')) {
-                    document.getElementById('photoPreview').src = item.photo;
-                    document.getElementById('photoPreview').classList.add('show');
-                    currentPhotoData = item.photo;
-                }
-            }
-        } else {
-            document.getElementById('modalTitle').innerText = '➕ Новое объявление';
-            document.getElementById('addTitle').value = '';
-            document.getElementById('addPrice').value = '';
-            document.getElementById('addDesc').value = '';
-            document.getElementById('premiumSwitch').style.background = "#ccc";
-            document.getElementById('premiumSwitch').querySelector('div').style.left = "2px";
-            document.getElementById('addPremium').value = "0";
-            document.getElementById('photoPreview').classList.remove('show');
-            currentPhotoData = null;
-        }
-        closeMenu();
-    }
+    function openAdd(itemId = null) { editingItemId = itemId; document.getElementById('addModal').classList.add('active'); document.getElementById('addCategory').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); if (itemId) { const item = items.find(i => i.id === itemId); if (item) { document.getElementById('modalTitle').innerText = '✏️ Редактировать'; document.getElementById('addTitle').value = item.title; document.getElementById('addCategory').value = item.category; document.getElementById('addPrice').value = item.price; document.getElementById('addDesc').value = item.description; if (item.premium) { document.getElementById('premiumSwitch').style.background = "var(--success)"; document.getElementById('premiumSwitch').querySelector('div').style.left = "22px"; document.getElementById('addPremium').value = "1"; } if (item.photo && !item.photo.includes('placeholder')) { document.getElementById('photoPreview').src = item.photo; document.getElementById('photoPreview').classList.add('show'); currentPhotoData = item.photo; } } } else { document.getElementById('modalTitle').innerText = '➕ Новое объявление'; document.getElementById('addTitle').value = ''; document.getElementById('addPrice').value = ''; document.getElementById('addDesc').value = ''; document.getElementById('premiumSwitch').style.background = "#ccc"; document.getElementById('premiumSwitch').querySelector('div').style.left = "2px"; document.getElementById('addPremium').value = "0"; document.getElementById('photoPreview').classList.remove('show'); currentPhotoData = null; } closeMenu(); }
     function closeAdd() { document.getElementById('addModal').classList.remove('active'); editingItemId = null; }
 
-    function submitItem() {
-        if (!validateAddForm()) return;
-        const title = document.getElementById('addTitle').value.trim();
-        const price = parseInt(document.getElementById('addPrice').value);
-        const cat = document.getElementById('addCategory').value;
-        const desc = document.getElementById('addDesc').value.trim();
-        const isPremium = document.getElementById('addPremium').value === "1";
+    function validateAddForm() { let valid = true; const title = document.getElementById('addTitle'), price = document.getElementById('addPrice'), desc = document.getElementById('addDesc'); if (!title.value.trim()) { title.classList.add('error-input'); valid = false; } else title.classList.remove('error-input'); if (!price.value || parseInt(price.value) <= 0) { price.classList.add('error-input'); valid = false; } else price.classList.remove('error-input'); if (!desc.value.trim()) { desc.classList.add('error-input'); valid = false; } else desc.classList.remove('error-input'); if (!valid) toast('❌ Заполните все обязательные поля'); return valid; }
 
-        if (isPremium && currentUser.stars < 15) { toast('❌ Недостаточно Stars'); return; }
-        if (isPremium) currentUser.stars -= 15;
+    function submitItem() { if (!validateAddForm()) return; const title = document.getElementById('addTitle').value.trim(), price = parseInt(document.getElementById('addPrice').value), cat = document.getElementById('addCategory').value, desc = document.getElementById('addDesc').value.trim(), isPremium = document.getElementById('addPremium').value === "1"; if (isPremium && currentUser.stars < 15) { toast('❌ Недостаточно Stars'); return; } if (isPremium) currentUser.stars -= 15; if (editingItemId) items = items.filter(i => i.id !== editingItemId); items.unshift({ id: editingItemId || Date.now(), title, price, category: cat, description: desc, photo: currentPhotoData || (editingItemId ? items.find(i => i.id === editingItemId)?.photo : 'https://via.placeholder.com/200?text=Нет+фото'), sellerId: userId, sellerName: currentUser.name, premium: isPremium, moderation: 'pending', time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), views: 0, likes: 0 }); saveData(); recalcLikes(); closeAdd(); render(); updateUI(); toast('✅ Отправлено на модерацию'); currentPhotoData = null; document.getElementById('photoPreview').classList.remove('show'); editingItemId = null; }
 
-        if (editingItemId) {
-            items = items.filter(i => i.id !== editingItemId);
-        }
-
-        items.unshift({
-            id: editingItemId || Date.now(),
-            title,
-            price,
-            category: cat,
-            description: desc,
-            photo: currentPhotoData || (editingItemId ? items.find(i => i.id === editingItemId)?.photo : 'https://via.placeholder.com/200?text=Нет+фото'),
-            sellerId: userId,
-            sellerName: currentUser.name,
-            premium: isPremium,
-            moderation: 'pending',
-            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-            views: 0,
-            likes: 0
-        });
-
-        saveData();
-        recalcLikes();
-        closeAdd();
-        render();
-        updateUI();
-        toast('✅ Отправлено на модерацию');
-        currentPhotoData = null;
-        document.getElementById('photoPreview').classList.remove('show');
-        editingItemId = null;
-    }
-
-    // ---------- Детали товара ----------
-    function openDetail(id) {
-        const item = items.find(i => i.id === id);
-        if (!item) return;
-        item.views = (item.views || 0) + 1;
-        saveData();
-
-        const isFav = favorites.includes(id);
-        const content = `
-            <img src="${item.photo}" style="width:100%; border-radius:16px; margin-bottom:16px;">
-            <h1 style="margin:8px 0;">${item.price.toLocaleString()} ₽</h1>
-            <h2>${item.title}</h2>
-            <p style="margin:12px 0; color:var(--text-light);">${item.description}</p>
-            <div style="display:flex; gap:8px; margin:12px 0;">
-                <span>👁️ ${item.views || 0}</span>
-                <span>❤️ ${item.likes || 0}</span>
-                <span>🕐 ${item.time}</span>
-            </div>
-            <hr style="border:0; border-top:1px solid var(--border); margin:16px 0;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div class="profile">${users[item.sellerId]?.avatar || '👤'}</div>
-                <b>${item.sellerName}</b>
-            </div>
-            <div style="margin-top:20px; display:flex; gap:12px;">
-                ${item.sellerId !== userId ? `<button class="btn btn-primary" onclick="openChat('${item.sellerId}')">💬 Написать</button>` : ''}
-                <button class="btn btn-outline" id="favBtn-${id}" onclick="toggleFav(${id})">${isFav ? '❤️ В избранном' : '🤍 В избранное'}</button>
-                ${item.sellerId === userId && item.moderation === 'approved' ? `<button class="btn btn-outline" onclick="openAdd(${id})">✏️ Редактировать</button>` : ''}
-            </div>
-        `;
-        document.getElementById('detailContent').innerHTML = content;
-        document.getElementById('detailModal').classList.add('active');
-    }
+    function openDetail(id) { const item = items.find(i => i.id === id); if (!item) return; item.views = (item.views || 0) + 1; saveData(); const isFav = favorites.includes(id); const content = `<img src="${item.photo}" style="width:100%; border-radius:16px; margin-bottom:16px;"><h1 style="margin:8px 0;">${item.price.toLocaleString()} ₽</h1><h2>${item.title}</h2><p style="margin:12px 0; color:var(--text-light);">${item.description}</p><div style="display:flex; gap:8px; margin:12px 0;"><span>👁️ ${item.views || 0}</span><span>❤️ ${item.likes || 0}</span><span>🕐 ${item.time}</span></div><hr style="border:0; border-top:1px solid var(--border); margin:16px 0;"><div style="display:flex; align-items:center; gap:10px;"><div class="profile">${users[item.sellerId]?.avatar || '👤'}</div><b>${item.sellerName}</b></div><div style="margin-top:20px; display:flex; gap:12px;">${item.sellerId !== userId ? `<button class="btn btn-primary" onclick="openChat('${item.sellerId}')">💬 Написать</button>` : ''}<button class="btn btn-outline" id="favBtn-${id}" onclick="toggleFav(${id})">${isFav ? '❤️ В избранном' : '🤍 В избранное'}</button>${item.sellerId === userId && item.moderation === 'approved' ? `<button class="btn btn-outline" onclick="openAdd(${id})">✏️ Редактировать</button>` : ''}</div>`; document.getElementById('detailContent').innerHTML = content; document.getElementById('detailModal').classList.add('active'); }
     function closeDetail() { document.getElementById('detailModal').classList.remove('active'); }
+    function toggleFav(id) { const idx = favorites.indexOf(id); if (idx === -1) favorites.push(id); else favorites.splice(idx,1); saveData(); recalcLikes(); updateUI(); toast(idx === -1 ? '✅ Добавлено в избранное' : '❌ Удалено'); render(); const favBtn = document.getElementById(`favBtn-${id}`); if (favBtn) favBtn.innerHTML = idx === -1 ? '❤️ В избранном' : '🤍 В избранное'; }
 
-    function toggleFav(id) {
-        const idx = favorites.indexOf(id);
-        if (idx === -1) favorites.push(id);
-        else favorites.splice(idx,1);
-        saveData();
-        recalcLikes();
-        updateUI();
-        toast(idx === -1 ? '✅ Добавлено в избранное' : '❌ Удалено');
-        render();
-        const favBtn = document.getElementById(`favBtn-${id}`);
-        if (favBtn) favBtn.innerHTML = idx === -1 ? '❤️ В избранном' : '🤍 В избранное';
-    }
-
-    // ---------- Избранное ----------
-    function showFavorites() {
-        const favItems = items.filter(i => favorites.includes(i.id));
-        const html = favItems.map(i => `
-            <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px; display:flex; gap:12px; cursor:pointer;" onclick="openDetail(${i.id})">
-                <img src="${i.photo}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
-                <div>
-                    <div style="font-weight:700;">${i.title}</div>
-                    <div>${i.price.toLocaleString()} ₽</div>
-                    <div style="font-size:11px; color:var(--text-light);">👁️ ${i.views || 0} ❤️ ${i.likes || 0}</div>
-                </div>
-                <button class="btn btn-outline" style="margin-left:auto; padding:4px 12px;" onclick="event.stopPropagation(); toggleFav(${i.id}); showFavorites();">Удалить</button>
-            </div>
-        `).join('');
-        document.getElementById('favoritesList').innerHTML = html || '<div style="text-align:center;">Нет избранных товаров</div>';
-        document.getElementById('favoritesModal').classList.add('active');
-        closeMenu();
-    }
+    function showFavorites() { const favItems = items.filter(i => favorites.includes(i.id)); const html = favItems.map(i => `<div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px; display:flex; gap:12px; cursor:pointer;" onclick="openDetail(${i.id})"><img src="${i.photo}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;"><div><div style="font-weight:700;">${i.title}</div><div>${i.price.toLocaleString()} ₽</div><div style="font-size:11px; color:var(--text-light);">👁️ ${i.views || 0} ❤️ ${i.likes || 0}</div></div><button class="btn btn-outline" style="margin-left:auto; padding:4px 12px;" onclick="event.stopPropagation(); toggleFav(${i.id}); showFavorites();">Удалить</button></div>`).join(''); document.getElementById('favoritesList').innerHTML = html || '<div style="text-align:center;">Нет избранных товаров</div>'; document.getElementById('favoritesModal').classList.add('active'); closeMenu(); }
     function closeFavorites() { document.getElementById('favoritesModal').classList.remove('active'); }
 
-    // ---------- Чаты ----------
     let currentChat = null;
-    function openChat(sellerId) {
-        let chat = chats.find(c => c.with === sellerId);
-        if (!chat) {
-            chat = {
-                id: Date.now(),
-                with: sellerId,
-                withName: users[sellerId]?.name || 'Продавец',
-                withAvatar: users[sellerId]?.avatar || '👤',
-                messages: []
-            };
-            chats.push(chat);
-            saveData();
-        }
-        currentChat = chat;
-        renderChatModal();
-        document.getElementById('chatDetailModal').classList.add('active');
-    }
-    function renderChatModal() {
-        const messagesHtml = currentChat.messages.map(m => {
-            if (m.type === 'system') {
-                return `<div class="msg system">📢 ${m.text}<small>${m.time}</small></div>`;
-            }
-            return `<div class="msg ${m.type}">${m.text}<small>${m.time}</small></div>`;
-        }).join('');
-        const html = `
-            <div class="chat-messages" id="chatMessages">${messagesHtml}</div>
-            <div class="chat-input">
-                <input type="text" id="chatInput" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendChatMessage()">
-                <button class="btn btn-primary" style="width:auto; padding:0 16px;" onclick="sendChatMessage()">➤</button>
-            </div>
-        `;
-        document.getElementById('chatDetailContent').innerHTML = html;
-        setTimeout(() => {
-            const msgs = document.getElementById('chatMessages');
-            if (msgs) msgs.scrollTop = msgs.scrollHeight;
-        }, 100);
-    }
-    function sendChatMessage() {
-        const input = document.getElementById('chatInput');
-        if (!input || !input.value.trim() || !currentChat) return;
-        currentChat.messages.push({
-            text: input.value,
-            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-            type: 'out'
-        });
-        saveData();
-        renderChatModal();
-        input.value = '';
-    }
-    function closeChatDetail() {
-        document.getElementById('chatDetailModal').classList.remove('active');
-        currentChat = null;
-    }
-    function showChats() {
-        const list = chats.map(c => `
-            <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px; display:flex; gap:12px; align-items:center; cursor:pointer;" onclick="openChat('${c.with}')">
-                <div class="profile" style="width:40px; height:40px;">${c.withAvatar}</div>
-                <div>
-                    <div style="font-weight:700;">${c.withName}</div>
-                    <div style="font-size:12px; color:var(--text-light);">${c.messages.length ? c.messages[c.messages.length-1].text.substring(0,30) : 'Нет сообщений'}</div>
-                </div>
-            </div>
-        `).join('');
-        document.getElementById('chatsList').innerHTML = list || '<div style="text-align:center;">Нет чатов</div>';
-        document.getElementById('chatsModal').classList.add('active');
-        closeMenu();
-    }
+    function openChat(sellerId) { let chat = chats.find(c => c.with === sellerId); if (!chat) { chat = { id: Date.now(), with: sellerId, withName: users[sellerId]?.name || 'Продавец', withAvatar: users[sellerId]?.avatar || '👤', messages: [] }; chats.push(chat); saveData(); } currentChat = chat; renderChatModal(); document.getElementById('chatDetailModal').classList.add('active'); }
+    function renderChatModal() { const messagesHtml = currentChat.messages.map(m => m.type === 'system' ? `<div class="msg system">📢 ${m.text}<small>${m.time}</small></div>` : `<div class="msg ${m.type}">${m.text}<small>${m.time}</small></div>`).join(''); const html = `<div class="chat-messages" id="chatMessages">${messagesHtml}</div><div class="chat-input"><input type="text" id="chatInput" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendChatMessage()"><button class="btn btn-primary" style="width:auto; padding:0 16px;" onclick="sendChatMessage()">➤</button></div>`; document.getElementById('chatDetailContent').innerHTML = html; setTimeout(() => { const msgs = document.getElementById('chatMessages'); if (msgs) msgs.scrollTop = msgs.scrollHeight; }, 100); }
+    function sendChatMessage() { const input = document.getElementById('chatInput'); if (!input || !input.value.trim() || !currentChat) return; currentChat.messages.push({ text: input.value, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), type: 'out' }); saveData(); renderChatModal(); input.value = ''; }
+    function closeChatDetail() { document.getElementById('chatDetailModal').classList.remove('active'); currentChat = null; }
+    function showChats() { const list = chats.map(c => `<div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px; display:flex; gap:12px; align-items:center; cursor:pointer;" onclick="openChat('${c.with}')"><div class="profile" style="width:40px; height:40px;">${c.withAvatar}</div><div><div style="font-weight:700;">${c.withName}</div><div style="font-size:12px; color:var(--text-light);">${c.messages.length ? c.messages[c.messages.length-1].text.substring(0,30) : 'Нет сообщений'}</div></div></div>`).join(''); document.getElementById('chatsList').innerHTML = list || '<div style="text-align:center;">Нет чатов</div>'; document.getElementById('chatsModal').classList.add('active'); closeMenu(); }
     function closeChats() { document.getElementById('chatsModal').classList.remove('active'); }
 
-    // ---------- Рефералы ----------
-    function showReferrals() {
-        const refLink = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
-        document.getElementById('referralLink').value = refLink;
-        document.getElementById('referralLink').onclick = function() {
-            this.select();
-            navigator.clipboard.writeText(this.value);
-            toast('✅ Ссылка скопирована');
-        };
-        const referrals = currentUser.referrals || [];
-        document.getElementById('referralCount').innerText = referrals.length;
-        document.getElementById('referralEarned').innerText = referrals.length * 15;
-        const listHtml = referrals.map(ref => `
-            <div class="referral-item">
-                <div class="referral-avatar">${ref.avatar || '👤'}</div>
-                <div class="referral-info">
-                    <div class="referral-name">${ref.name}</div>
-                    <div class="referral-meta">${ref.date || ''}</div>
-                </div>
-                <div class="referral-badge">+15 ⭐</div>
-            </div>
-        `).join('');
-        document.getElementById('referralList').innerHTML = listHtml || 'Пока нет приглашённых';
-        document.getElementById('referralsModal').classList.add('active');
-        closeMenu();
-    }
+    function showReferrals() { const refLink = `${window.location.origin}${window.location.pathname}?ref=${userId}`; document.getElementById('referralLink').value = refLink; document.getElementById('referralLink').onclick = function() { this.select(); navigator.clipboard.writeText(this.value); toast('✅ Ссылка скопирована'); }; const referrals = currentUser.referrals || []; document.getElementById('referralCount').innerText = referrals.length; document.getElementById('referralEarned').innerText = referrals.length * 15; const listHtml = referrals.map(ref => `<div class="referral-item"><div class="referral-avatar">${ref.avatar || '👤'}</div><div class="referral-info"><div class="referral-name">${ref.name}</div><div class="referral-meta">${ref.date || ''}</div></div><div class="referral-badge">+15 ⭐</div></div>`).join(''); document.getElementById('referralList').innerHTML = listHtml || 'Пока нет приглашённых'; document.getElementById('referralsModal').classList.add('active'); closeMenu(); }
     function closeReferrals() { document.getElementById('referralsModal').classList.remove('active'); }
 
-    // ---------- Мои товары (с удалением, просмотрами, лайками) ----------
-    function showMyItems() {
-        const my = items.filter(i => i.sellerId === userId);
-        const html = my.map(i => `
-            <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px;">
-                <div style="display:flex; gap:12px;">
-                    <img src="${i.photo}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
-                    <div style="flex:1;">
-                        <div style="font-weight:700;">${i.title}</div>
-                        <div>${i.price.toLocaleString()} ₽</div>
-                        <div style="font-size:11px; color:var(--text-light);">
-                            👁️ ${i.views || 0} ❤️ ${i.likes || 0} | ${i.time}
-                        </div>
-                        <div style="font-size:11px;">Статус: ${i.moderation === 'pending' ? '⏳ На модерации' : i.moderation === 'approved' ? '✅ Активен' : '❌ Отклонён'}</div>
-                        ${i.rejectReason ? `<div style="font-size:11px; color:var(--danger);">Причина: ${i.rejectReason}</div>` : ''}
-                    </div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-outline" style="flex:1;" onclick="openDetail(${i.id})">🔍 Подробнее</button>
-                    <button class="btn btn-outline" style="flex:1;" onclick="openAdd(${i.id})">✏️ Редактировать</button>
-                    <button class="btn btn-danger" style="flex:1;" onclick="deleteItem(${i.id})">🗑️ Удалить</button>
-                </div>
-            </div>
-        `).join('');
-        document.getElementById('myItemsList').innerHTML = html || '<div style="text-align:center;">У вас пока нет товаров</div>';
-        document.getElementById('myItemsModal').classList.add('active');
-        closeMenu();
-    }
+    function showMyItems() { const my = items.filter(i => i.sellerId === userId); const html = my.map(i => `<div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px;"><div style="display:flex; gap:12px;"><img src="${i.photo}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;"><div style="flex:1;"><div style="font-weight:700;">${i.title}</div><div>${i.price.toLocaleString()} ₽</div><div style="font-size:11px; color:var(--text-light);">👁️ ${i.views || 0} ❤️ ${i.likes || 0} | ${i.time}</div><div style="font-size:11px;">Статус: ${i.moderation === 'pending' ? '⏳ На модерации' : i.moderation === 'approved' ? '✅ Активен' : '❌ Отклонён'}</div>${i.rejectReason ? `<div style="font-size:11px; color:var(--danger);">Причина: ${i.rejectReason}</div>` : ''}</div></div><div class="item-actions"><button class="btn btn-outline" style="flex:1;" onclick="openDetail(${i.id})">🔍 Подробнее</button><button class="btn btn-outline" style="flex:1;" onclick="openAdd(${i.id})">✏️ Редактировать</button><button class="btn btn-danger" style="flex:1;" onclick="deleteItem(${i.id})">🗑️ Удалить</button></div></div>`).join(''); document.getElementById('myItemsList').innerHTML = html || '<div style="text-align:center;">У вас пока нет товаров</div>'; document.getElementById('myItemsModal').classList.add('active'); closeMenu(); }
     function closeMyItems() { document.getElementById('myItemsModal').classList.remove('active'); }
+    function deleteItem(id) { if (confirm('Удалить товар безвозвратно?')) { const item = items.find(i => i.id === id); if (item && item.premium && item.moderation === 'approved') { currentUser.stars += 15; sendSystemNotification(userId, `💰 Вам возвращено 15 ⭐ за удаление премиум-товара "${item.title}"`); saveData(); updateUI(); } items = items.filter(i => i.id !== id); saveData(); recalcLikes(); render(); showMyItems(); toast('✅ Товар удалён'); } }
 
-    function deleteItem(id) {
-        if (confirm('Удалить товар безвозвратно?')) {
-            const item = items.find(i => i.id === id);
-            if (item && item.premium && item.moderation === 'approved') {
-                currentUser.stars += 15;
-                sendSystemNotification(userId, `💰 Вам возвращено 15 ⭐ за удаление премиум-товара "${item.title}"`);
-                saveData();
-                updateUI();
-            }
-            items = items.filter(i => i.id !== id);
-            saveData();
-            recalcLikes();
-            render();
-            showMyItems();
-            toast('✅ Товар удалён');
-        }
-    }
-
-    // ---------- Админка ----------
     let currentModerateItem = null;
-    function showAdmin() {
-        if (!isAdmin) { toast('⛔ Доступ запрещён'); return; }
-        const usersCount = Object.keys(users).filter(uid => uid !== SYSTEM_USER_ID).length;
-        const totalRecharges = transactions.reduce((sum, t) => t.amount > 0 ? sum + t.amount : sum, 0);
-        document.getElementById('adminStats').innerHTML = `
-            <div style="background:var(--chip); padding:12px; border-radius:12px;"><div style="font-weight:800;">👥 Пользователей</div><div>${usersCount}</div></div>
-            <div style="background:var(--chip); padding:12px; border-radius:12px;"><div style="font-weight:800;">💰 Всего пополнений</div><div>${totalRecharges} ⭐</div></div>
-        `;
-
-        const pending = items.filter(i => i.moderation === 'pending');
-        document.getElementById('moderationListAdmin').innerHTML = pending.map(i => `
-            <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px;">
-                <b>${i.title}</b> (${i.price} ₽)<br>
-                👤 ${i.sellerName}<br>
-                <button class="btn btn-primary" style="margin-top:8px; padding:8px;" onclick="openModerate(${i.id})">🔍 Рассмотреть</button>
-            </div>
-        `).join('') || 'Нет заявок';
-
-        const allUsers = Object.values(users).filter(u => u.id !== SYSTEM_USER_ID && u.id !== userId);
-        document.getElementById('usersListAdmin').innerHTML = allUsers.map(u => `
-            <div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px;">
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <div class="profile" style="width:40px; height:40px;">${u.avatar}</div>
-                    <div style="flex:1;">
-                        <b>${u.name}</b> (${u.login})<br>
-                        ⭐ ${u.stars} | Статус: ${u.status === 'active' ? '✅ Активен' : '🚫 Заблокирован'}
-                        ${u.blockReason ? `<div style="font-size:11px; color:var(--danger);">Причина: ${u.blockReason}</div>` : ''}
-                    </div>
-                    <button class="btn btn-outline" style="padding:6px 12px;" onclick="openBlockUser('${u.id}')">${u.status === 'active' ? '🔨 Заблокировать' : '🔓 Разблокировать'}</button>
-                </div>
-            </div>
-        `).join('');
-        document.getElementById('adminModal').classList.add('active');
-        closeMenu();
-    }
+    function showAdmin() { if (!isAdmin) { toast('⛔ Доступ запрещён'); return; } const usersCount = Object.keys(users).filter(uid => uid !== SYSTEM_USER_ID).length; const totalRecharges = transactions.reduce((sum, t) => t.amount > 0 ? sum + t.amount : sum, 0); document.getElementById('adminStats').innerHTML = `<div style="background:var(--chip); padding:12px; border-radius:12px;"><div style="font-weight:800;">👥 Пользователей</div><div>${usersCount}</div></div><div style="background:var(--chip); padding:12px; border-radius:12px;"><div style="font-weight:800;">💰 Всего пополнений</div><div>${totalRecharges} ⭐</div></div>`; const pending = items.filter(i => i.moderation === 'pending'); document.getElementById('moderationListAdmin').innerHTML = pending.map(i => `<div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px;"><b>${i.title}</b> (${i.price} ₽)<br>👤 ${i.sellerName}<br><button class="btn btn-primary" style="margin-top:8px; padding:8px;" onclick="openModerate(${i.id})">🔍 Рассмотреть</button></div>`).join('') || 'Нет заявок'; const allUsers = Object.values(users).filter(u => u.id !== SYSTEM_USER_ID && u.id !== userId); document.getElementById('usersListAdmin').innerHTML = allUsers.map(u => `<div style="background:var(--chip); border-radius:12px; margin-bottom:12px; padding:12px;"><div style="display:flex; align-items:center; gap:12px;"><div class="profile" style="width:40px; height:40px;">${u.avatar}</div><div style="flex:1;"><b>${u.name}</b> (${u.login})<br>⭐ ${u.stars} | Статус: ${u.status === 'active' ? '✅ Активен' : '🚫 Заблокирован'}${u.blockReason ? `<div style="font-size:11px; color:var(--danger);">Причина: ${u.blockReason}</div>` : ''}</div><button class="btn btn-outline" style="padding:6px 12px;" onclick="openBlockUser('${u.id}')">${u.status === 'active' ? '🔨 Заблокировать' : '🔓 Разблокировать'}</button></div></div>`).join(''); document.getElementById('adminModal').classList.add('active'); closeMenu(); }
     function closeAdmin() { document.getElementById('adminModal').classList.remove('active'); }
-
-    function openModerate(id) {
-        const item = items.find(i => i.id === id);
-        if (!item) return;
-        currentModerateItem = item;
-        document.getElementById('moderateContent').innerHTML = `
-            <img src="${item.photo}" style="width:100%; border-radius:16px; margin-bottom:16px;">
-            <h3>${item.title}</h3>
-            <p><strong>Цена:</strong> ${item.price.toLocaleString()} ₽</p>
-            <p><strong>Категория:</strong> ${CATEGORIES.find(c => c.id === item.category)?.name || item.category}</p>
-            <p><strong>Описание:</strong><br>${item.description}</p>
-            <p><strong>Продавец:</strong> ${item.sellerName}</p>
-            <p><strong>Дата:</strong> ${item.time}</p>
-            ${item.premium ? '<p style="color:var(--gold);">⭐ Премиум объявление</p>' : ''}
-        `;
-        document.getElementById('moderateModal').classList.add('active');
-    }
+    function openModerate(id) { const item = items.find(i => i.id === id); if (!item) return; currentModerateItem = item; document.getElementById('moderateContent').innerHTML = `<img src="${item.photo}" style="width:100%; border-radius:16px; margin-bottom:16px;"><h3>${item.title}</h3><p><strong>Цена:</strong> ${item.price.toLocaleString()} ₽</p><p><strong>Категория:</strong> ${CATEGORIES.find(c => c.id === item.category)?.name || item.category}</p><p><strong>Описание:</strong><br>${item.description}</p><p><strong>Продавец:</strong> ${item.sellerName}</p><p><strong>Дата:</strong> ${item.time}</p>${item.premium ? '<p style="color:var(--gold);">⭐ Премиум объявление</p>' : ''}`; document.getElementById('moderateModal').classList.add('active'); }
     function closeModerate() { document.getElementById('moderateModal').classList.remove('active'); currentModerateItem = null; }
+    function approveItem() { if (!currentModerateItem) return; currentModerateItem.moderation = 'approved'; saveData(); render(); closeModerate(); showAdmin(); toast('✅ Товар одобрен'); sendSystemNotification(currentModerateItem.sellerId, `✅ Ваш товар "${currentModerateItem.title}" одобрен и опубликован!`); }
+    function rejectItemWithReason() { if (!currentModerateItem) return; const reason = document.getElementById('rejectReason').value.trim(); if (!reason) { toast('❌ Укажите причину отказа'); return; } if (currentModerateItem.premium) { const seller = users[currentModerateItem.sellerId]; if (seller) { seller.stars += 15; const trans = JSON.parse(localStorage.getItem(`avito_trans_${currentModerateItem.sellerId}`) || '[]'); trans.unshift({ desc: `Возврат за отклонённый премиум: ${currentModerateItem.title}`, date: new Date().toLocaleDateString(), amount: 15 }); localStorage.setItem(`avito_trans_${currentModerateItem.sellerId}`, JSON.stringify(trans)); saveData(); } } currentModerateItem.moderation = 'rejected'; currentModerateItem.rejectReason = reason; items = items.filter(i => i.id !== currentModerateItem.id); saveData(); render(); closeModerate(); showAdmin(); toast('❌ Товар отклонён'); sendSystemNotification(currentModerateItem.sellerId, `❌ Ваш товар "${currentModerateItem.title}" отклонён.\nПричина: ${reason}`); }
 
-    function approveItem() {
-        if (!currentModerateItem) return;
-        currentModerateItem.moderation = 'approved';
-        saveData();
-        render();
-        closeModerate();
-        showAdmin();
-        toast('✅ Товар одобрен');
-        sendSystemNotification(currentModerateItem.sellerId, `✅ Ваш товар "${currentModerateItem.title}" одобрен и опубликован!`);
-    }
-
-    function rejectItemWithReason() {
-        if (!currentModerateItem) return;
-        const reason = document.getElementById('rejectReason').value.trim();
-        if (!reason) {
-            toast('❌ Укажите причину отказа');
-            return;
-        }
-        if (currentModerateItem.premium) {
-            const seller = users[currentModerateItem.sellerId];
-            if (seller) {
-                seller.stars += 15;
-                const trans = JSON.parse(localStorage.getItem(`avito_trans_${currentModerateItem.sellerId}`) || '[]');
-                trans.unshift({ desc: `Возврат за отклонённый премиум: ${currentModerateItem.title}`, date: new Date().toLocaleDateString(), amount: 15 });
-                localStorage.setItem(`avito_trans_${currentModerateItem.sellerId}`, JSON.stringify(trans));
-                saveData();
-            }
-        }
-        currentModerateItem.moderation = 'rejected';
-        currentModerateItem.rejectReason = reason;
-        items = items.filter(i => i.id !== currentModerateItem.id);
-        saveData();
-        render();
-        closeModerate();
-        showAdmin();
-        toast('❌ Товар отклонён');
-        sendSystemNotification(currentModerateItem.sellerId, `❌ Ваш товар "${currentModerateItem.title}" отклонён.\nПричина: ${reason}`);
-    }
-
-    // Блокировка пользователя
     let currentBlockUserId = null;
-    function openBlockUser(uid) {
-        const u = users[uid];
-        if (!u) return;
-        currentBlockUserId = uid;
-        document.getElementById('blockUserInfo').innerHTML = `
-            <div style="display:flex; align-items:center; gap:12px;">
-                <div class="profile" style="width:40px; height:40px;">${u.avatar}</div>
-                <div><b>${u.name}</b> (${u.login})</div>
-            </div>
-        `;
-        if (u.status === 'blocked') {
-            document.getElementById('blockModal').classList.add('active');
-            document.getElementById('blockReason').value = u.blockReason || '';
-            document.querySelector('#blockModal .btn-danger').innerText = '🔓 Разблокировать';
-        } else {
-            document.getElementById('blockModal').classList.add('active');
-            document.getElementById('blockReason').value = '';
-            document.querySelector('#blockModal .btn-danger').innerText = '🔨 Заблокировать';
-        }
-    }
+    function openBlockUser(uid) { const u = users[uid]; if (!u) return; currentBlockUserId = uid; document.getElementById('blockUserInfo').innerHTML = `<div style="display:flex; align-items:center; gap:12px;"><div class="profile" style="width:40px; height:40px;">${u.avatar}</div><div><b>${u.name}</b> (${u.login})</div></div>`; if (u.status === 'blocked') { document.getElementById('blockModal').classList.add('active'); document.getElementById('blockReason').value = u.blockReason || ''; document.querySelector('#blockModal .btn-danger').innerText = '🔓 Разблокировать'; } else { document.getElementById('blockModal').classList.add('active'); document.getElementById('blockReason').value = ''; document.querySelector('#blockModal .btn-danger').innerText = '🔨 Заблокировать'; } }
     function closeBlock() { document.getElementById('blockModal').classList.remove('active'); currentBlockUserId = null; }
-    function confirmBlock() {
-        const u = users[currentBlockUserId];
-        if (!u) return;
-        const reason = document.getElementById('blockReason').value.trim();
-        if (u.status === 'active') {
-            if (!reason) { toast('❌ Укажите причину блокировки'); return; }
-            u.status = 'blocked';
-            u.blockReason = reason;
-            toast(`🔨 ${u.name} заблокирован`);
-            sendSystemNotification(u.id, `🚫 Вы заблокированы администратором.\nПричина: ${reason}\nПо вопросам: @avito_vidnoe_support`);
-        } else {
-            u.status = 'active';
-            u.blockReason = '';
-            toast(`✅ ${u.name} разблокирован`);
-            sendSystemNotification(u.id, `✅ Ваша блокировка снята. Теперь вы снова можете пользоваться платформой.`);
-        }
-        saveData();
-        closeBlock();
-        showAdmin();
-    }
+    function confirmBlock() { const u = users[currentBlockUserId]; if (!u) return; const reason = document.getElementById('blockReason').value.trim(); if (u.status === 'active') { if (!reason) { toast('❌ Укажите причину блокировки'); return; } u.status = 'blocked'; u.blockReason = reason; toast(`🔨 ${u.name} заблокирован`); sendSystemNotification(u.id, `🚫 Вы заблокированы администратором.\nПричина: ${reason}\nПо вопросам: @avito_vidnoe_support`); } else { u.status = 'active'; u.blockReason = ''; toast(`✅ ${u.name} разблокирован`); sendSystemNotification(u.id, `✅ Ваша блокировка снята. Теперь вы снова можете пользоваться платформой.`); } saveData(); closeBlock(); showAdmin(); }
 
-    // ---------- Прочее ----------
-    function toggleTheme() {
-        document.body.classList.toggle('dark');
-        localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-    }
+    function toggleTheme() { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); }
     function toggleMenu() { document.getElementById('menu').classList.toggle('show'); }
     function closeMenu() { document.getElementById('menu').classList.remove('show'); }
 
-    // ---------- Инициализация ----------
-    function initFilters() {
-        const row = document.getElementById('filterRow');
-        row.innerHTML = '<span class="filter active" data-cat="all" onclick="filterCat(\'all\')">🌟 Все</span>' +
-            CATEGORIES.map(c => `<span class="filter" data-cat="${c.id}" onclick="filterCat('${c.id}')">${c.name}</span>`).join('');
-    }
+    function initFilters() { const row = document.getElementById('filterRow'); row.innerHTML = '<span class="filter active" data-cat="all" onclick="filterCat(\'all\')">🌟 Все</span>' + CATEGORIES.map(c => `<span class="filter" data-cat="${c.id}" onclick="filterCat('${c.id}')">${c.name}</span>`).join(''); }
 
     recalcLikes();
     if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
@@ -1386,10 +894,7 @@
         render();
         updateUI();
         document.getElementById('addCategory').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-        document.addEventListener('click', (e) => {
-            const menu = document.getElementById('menu');
-            if (menu && !menu.contains(e.target) && !e.target.closest('.profile')) menu.classList.remove('show');
-        });
+        document.addEventListener('click', (e) => { const menu = document.getElementById('menu'); if (menu && !menu.contains(e.target) && !e.target.closest('.profile')) menu.classList.remove('show'); });
         toast(`👋 Добро пожаловать, ${currentUser.name}!`);
     };
 </script>
