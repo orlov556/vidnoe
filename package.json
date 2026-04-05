@@ -1,0 +1,14 @@
+{
+  "name": "avito-vidnoe",
+  "version": "1.0.0",
+  "description": "Telegram Mini App for Avito Vidnoe",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "node-telegram-bot-api": "^0.64.0"
+  }
+}
