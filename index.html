@@ -6,12 +6,36 @@
     <title>Авито Видное — Marketplace</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* ---------- FULL-SCREEN OPTIMIZATION ---------- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            padding-bottom: 80px;          /* space for FAB */
+            transition: background 0.3s;
+            overflow-x: hidden;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        /* ensure all content stretches properly */
+        .app-content {
+            flex: 1;
+        }
+        /* ---------- EXISTING STYLES (unchanged, just moved inside) ---------- */
         :root {
             --bg: #f4f4f7;
             --card: #ffffff;
@@ -34,13 +58,6 @@
             --accent-soft: #1c2c3e;
             --border: #3a3a3c;
             --chip: #3a3a3c;
-        }
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            padding-bottom: 80px;
-            transition: background 0.3s;
         }
         .blocked-screen {
             position: fixed;
@@ -472,196 +489,199 @@
 </head>
 <body>
 
-<header>
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Поиск на Маркете..." oninput="doSearch()">
-    </div>
-    <div class="profile" id="profileIcon" onclick="toggleMenu()">👤</div>
-</header>
+<!-- wrap all content inside a flexible container -->
+<div style="flex: 1; display: flex; flex-direction: column;">
+    <header>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Поиск на Маркете..." oninput="doSearch()">
+        </div>
+        <div class="profile" id="profileIcon" onclick="toggleMenu()">👤</div>
+    </header>
 
-<div id="filterRow"></div>
-<div class="feed" id="feed"></div>
-<div class="fab" onclick="openAdd()">+</div>
+    <div id="filterRow"></div>
+    <div class="feed" id="feed"></div>
+    <div class="fab" onclick="openAdd()">+</div>
 
-<div class="menu" id="menu">
-    <div class="menu-user">
-        <div class="profile" id="menuAvatar" style="width:50px; height:50px; font-size:24px;">👤</div>
-        <div>
-            <div id="menuName" style="font-weight:800; font-size:18px;">Загрузка...</div>
-            <div id="menuLogin" style="color:var(--text-light); font-size:14px;">@user</div>
-        </div>
-    </div>
-    <div class="menu-item" onclick="showStars()">⭐ Баланс: <span id="menuStars">0</span></div>
-    <div class="menu-item" onclick="showMyItems()">📦 Мои товары (<span id="menuMyItems">0</span>)</div>
-    <div class="menu-item" onclick="showFavorites()">❤️ Избранное (<span id="menuFav">0</span>)</div>
-    <div class="menu-item" onclick="showChats()">💬 Сообщения (<span id="menuChats">0</span>)</div>
-    <div class="menu-item" onclick="showReferrals()">👥 Пригласить друзей</div>
-    <div class="menu-item" onclick="toggleTheme()">
-        <div class="theme-switch-wrapper">
-            <span>🌓 Сменить тему</span>
-            <div class="theme-switch"></div>
-        </div>
-    </div>
-    <div class="menu-item" id="adminMenuItem" style="display:none; color:var(--gold);" onclick="showAdmin()">🛠 Админ-панель</div>
-    <div class="btn btn-outline" style="margin-top: 20px;" onclick="closeMenu()">Закрыть</div>
-</div>
-
-<!-- Stars Modal -->
-<div id="starsModal" class="modal">
-    <div class="modal-header"><h2>⭐ Пополнение баланса</h2><button onclick="closeStars()">✖</button></div>
-    <div class="modal-content">
-        <div class="stars-card">
-            <div class="stars-amount" id="starsAmount">0</div>
-            <div class="stars-label">доступно Stars</div>
-        </div>
-        <div class="payment-options">
-            <button class="btn btn-primary" onclick="buyStarsTelegram(50)">50 ⭐ (Telegram)</button>
-            <button class="btn btn-outline" onclick="buyStarsCrypto(50)">50 ⭐ (Crypto)</button>
-        </div>
-        <div class="payment-options">
-            <button class="btn btn-primary" onclick="buyStarsTelegram(100)">100 ⭐ (Telegram)</button>
-            <button class="btn btn-outline" onclick="buyStarsCrypto(100)">100 ⭐ (Crypto)</button>
-        </div>
-        <div class="payment-options">
-            <button class="btn btn-primary" onclick="buyStarsTelegram(200)">200 ⭐ (Telegram)</button>
-            <button class="btn btn-outline" onclick="buyStarsCrypto(200)">200 ⭐ (Crypto)</button>
-        </div>
-        <div class="payment-options">
-            <button class="btn btn-primary" onclick="buyStarsTelegram(500)">500 ⭐ (Telegram)</button>
-            <button class="btn btn-outline" onclick="buyStarsCrypto(500)">500 ⭐ (Crypto)</button>
-        </div>
-        <div class="custom-input">
-            <input type="number" id="customStars" placeholder="Своё число">
-            <button class="btn btn-primary" style="width:auto; padding:12px 24px;" onclick="buyStarsTelegramCustom()">Купить (Telegram)</button>
-            <button class="btn btn-outline" style="width:auto; padding:12px 24px;" onclick="buyStarsCryptoCustom()">Купить (Crypto)</button>
-        </div>
-        <div id="starsHistory" style="margin-top:20px;"></div>
-    </div>
-</div>
-
-<!-- Add Modal -->
-<div id="addModal" class="modal">
-    <div class="modal-header"><h2 id="modalTitle">Новое объявление</h2><button onclick="closeAdd()">✖</button></div>
-    <div class="modal-content">
-        <input type="text" id="addTitle" placeholder="Название" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);">
-        <select id="addCategory" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);"></select>
-        <input type="number" id="addPrice" placeholder="Цена (₽)" min="1" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);">
-        <textarea id="addDesc" placeholder="Описание" style="width:100%; height:100px; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);"></textarea>
-        <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
-            📸 Загрузить фото
-            <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
-            <img id="photoPreview" class="photo-preview">
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--chip); padding:12px; border-radius:12px; margin-bottom:16px;">
-            <span>⭐ Премиум продвижение (15 ⭐)</span>
-            <div id="premiumSwitch" style="width:40px; height:20px; background:#ccc; border-radius:10px; position:relative; cursor:pointer;" onclick="togglePremium()">
-                <div style="width:16px; height:16px; background:white; border-radius:50%; position:absolute; top:2px; left:2px; transition:0.3s;"></div>
-            </div>
-            <input type="hidden" id="addPremium" value="0">
-        </div>
-        <button class="btn btn-primary" onclick="submitItem()">Опубликовать</button>
-    </div>
-</div>
-
-<!-- Detail Modal -->
-<div id="detailModal" class="modal">
-    <div class="modal-header"><h2>Детали товара</h2><button onclick="closeDetail()">✖</button></div>
-    <div class="modal-content" id="detailContent"></div>
-</div>
-
-<!-- My Items Modal -->
-<div id="myItemsModal" class="modal">
-    <div class="modal-header"><h2>📦 Мои товары</h2><button onclick="closeMyItems()">✖</button></div>
-    <div class="modal-content" id="myItemsList"></div>
-</div>
-
-<!-- Favorites Modal -->
-<div id="favoritesModal" class="modal">
-    <div class="modal-header"><h2>❤️ Избранное</h2><button onclick="closeFavorites()">✖</button></div>
-    <div class="modal-content" id="favoritesList"></div>
-</div>
-
-<!-- Chats Modal -->
-<div id="chatsModal" class="modal">
-    <div class="modal-header"><h2>💬 Чаты</h2><button onclick="closeChats()">✖</button></div>
-    <div class="modal-content" id="chatsList"></div>
-</div>
-
-<!-- Chat Detail Modal -->
-<div id="chatDetailModal" class="modal">
-    <div class="modal-header"><h2>Чат</h2><button onclick="closeChatDetail()">✖</button></div>
-    <div class="modal-content" id="chatDetailContent"></div>
-</div>
-
-<!-- Referrals Modal -->
-<div id="referralsModal" class="modal">
-    <div class="modal-header"><h2>👥 Реферальная программа</h2><button onclick="closeReferrals()">✖</button></div>
-    <div class="modal-content">
-        <div style="background:linear-gradient(135deg, var(--gold), #e67e22); padding:20px; border-radius:16px; text-align:center; margin-bottom:20px;">
-            <div style="font-size:32px; font-weight:800;">+15 ⭐</div>
-            <div>за каждого приглашённого друга</div>
-        </div>
-        <div class="form-group" style="margin-bottom:16px;">
-            <label>Ваша реферальная ссылка</label>
-            <input type="text" id="referralLink" readonly style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); cursor:pointer;">
-        </div>
-        <div style="display:flex; gap:12px; margin-bottom:20px;">
-            <div style="flex:1; background:var(--chip); padding:12px; border-radius:12px; text-align:center;">
-                <div id="referralCount" style="font-size:24px; font-weight:800;">0</div>
-                <div>Приглашено</div>
-            </div>
-            <div style="flex:1; background:var(--chip); padding:12px; border-radius:12px; text-align:center;">
-                <div id="referralEarned" style="font-size:24px; font-weight:800;">0</div>
-                <div>Заработано ⭐</div>
+    <div class="menu" id="menu">
+        <div class="menu-user">
+            <div class="profile" id="menuAvatar" style="width:50px; height:50px; font-size:24px;">👤</div>
+            <div>
+                <div id="menuName" style="font-weight:800; font-size:18px;">Загрузка...</div>
+                <div id="menuLogin" style="color:var(--text-light); font-size:14px;">@user</div>
             </div>
         </div>
-        <h3>Ваши рефералы</h3>
-        <div id="referralList"></div>
-    </div>
-</div>
-
-<!-- Admin Modal -->
-<div id="adminModal" class="modal">
-    <div class="modal-header"><h2>🛠 Админ-панель</h2><button onclick="closeAdmin()">✖</button></div>
-    <div class="modal-content">
-        <div id="adminStats" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;"></div>
-        <h3>⏳ На модерации</h3>
-        <div id="moderationListAdmin"></div>
-        <h3>👥 Пользователи</h3>
-        <div id="usersListAdmin"></div>
-    </div>
-</div>
-
-<!-- Moderate Modal -->
-<div id="moderateModal" class="modal">
-    <div class="modal-header"><h2>Модерация товара</h2><button onclick="closeModerate()">✖</button></div>
-    <div class="modal-content">
-        <div id="moderateContent"></div>
-        <div style="margin:16px 0;">
-            <label>Причина отказа (если отклоняете)</label>
-            <textarea id="rejectReason" rows="3" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:8px;"></textarea>
+        <div class="menu-item" onclick="showStars()">⭐ Баланс: <span id="menuStars">0</span></div>
+        <div class="menu-item" onclick="showMyItems()">📦 Мои товары (<span id="menuMyItems">0</span>)</div>
+        <div class="menu-item" onclick="showFavorites()">❤️ Избранное (<span id="menuFav">0</span>)</div>
+        <div class="menu-item" onclick="showChats()">💬 Сообщения (<span id="menuChats">0</span>)</div>
+        <div class="menu-item" onclick="showReferrals()">👥 Пригласить друзей</div>
+        <div class="menu-item" onclick="toggleTheme()">
+            <div class="theme-switch-wrapper">
+                <span>🌓 Сменить тему</span>
+                <div class="theme-switch"></div>
+            </div>
         </div>
-        <div style="display:flex; gap:12px;">
-            <button class="btn btn-primary" onclick="approveItem()">✅ Одобрить</button>
-            <button class="btn btn-danger" onclick="rejectItemWithReason()">❌ Отклонить</button>
+        <div class="menu-item" id="adminMenuItem" style="display:none; color:var(--gold);" onclick="showAdmin()">🛠 Админ-панель</div>
+        <div class="btn btn-outline" style="margin-top: 20px;" onclick="closeMenu()">Закрыть</div>
+    </div>
+
+    <!-- Stars Modal -->
+    <div id="starsModal" class="modal">
+        <div class="modal-header"><h2>⭐ Пополнение баланса</h2><button onclick="closeStars()">✖</button></div>
+        <div class="modal-content">
+            <div class="stars-card">
+                <div class="stars-amount" id="starsAmount">0</div>
+                <div class="stars-label">доступно Stars</div>
+            </div>
+            <div class="payment-options">
+                <button class="btn btn-primary" onclick="buyStarsTelegram(50)">50 ⭐ (Telegram)</button>
+                <button class="btn btn-outline" onclick="buyStarsCrypto(50)">50 ⭐ (Crypto)</button>
+            </div>
+            <div class="payment-options">
+                <button class="btn btn-primary" onclick="buyStarsTelegram(100)">100 ⭐ (Telegram)</button>
+                <button class="btn btn-outline" onclick="buyStarsCrypto(100)">100 ⭐ (Crypto)</button>
+            </div>
+            <div class="payment-options">
+                <button class="btn btn-primary" onclick="buyStarsTelegram(200)">200 ⭐ (Telegram)</button>
+                <button class="btn btn-outline" onclick="buyStarsCrypto(200)">200 ⭐ (Crypto)</button>
+            </div>
+            <div class="payment-options">
+                <button class="btn btn-primary" onclick="buyStarsTelegram(500)">500 ⭐ (Telegram)</button>
+                <button class="btn btn-outline" onclick="buyStarsCrypto(500)">500 ⭐ (Crypto)</button>
+            </div>
+            <div class="custom-input">
+                <input type="number" id="customStars" placeholder="Своё число">
+                <button class="btn btn-primary" style="width:auto; padding:12px 24px;" onclick="buyStarsTelegramCustom()">Купить (Telegram)</button>
+                <button class="btn btn-outline" style="width:auto; padding:12px 24px;" onclick="buyStarsCryptoCustom()">Купить (Crypto)</button>
+            </div>
+            <div id="starsHistory" style="margin-top:20px;"></div>
         </div>
     </div>
-</div>
 
-<!-- Block Modal -->
-<div id="blockModal" class="modal">
-    <div class="modal-header"><h2>Блокировка пользователя</h2><button onclick="closeBlock()">✖</button></div>
-    <div class="modal-content">
-        <div id="blockUserInfo"></div>
-        <div style="margin:16px 0;">
-            <label>Причина блокировки</label>
-            <textarea id="blockReason" rows="3" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:8px;"></textarea>
+    <!-- Add Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-header"><h2 id="modalTitle">Новое объявление</h2><button onclick="closeAdd()">✖</button></div>
+        <div class="modal-content">
+            <input type="text" id="addTitle" placeholder="Название" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);">
+            <select id="addCategory" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);"></select>
+            <input type="number" id="addPrice" placeholder="Цена (₽)" min="1" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);">
+            <textarea id="addDesc" placeholder="Описание" style="width:100%; height:100px; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);"></textarea>
+            <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
+                📸 Загрузить фото
+                <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+                <img id="photoPreview" class="photo-preview">
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--chip); padding:12px; border-radius:12px; margin-bottom:16px;">
+                <span>⭐ Премиум продвижение (15 ⭐)</span>
+                <div id="premiumSwitch" style="width:40px; height:20px; background:#ccc; border-radius:10px; position:relative; cursor:pointer;" onclick="togglePremium()">
+                    <div style="width:16px; height:16px; background:white; border-radius:50%; position:absolute; top:2px; left:2px; transition:0.3s;"></div>
+                </div>
+                <input type="hidden" id="addPremium" value="0">
+            </div>
+            <button class="btn btn-primary" onclick="submitItem()">Опубликовать</button>
         </div>
-        <button class="btn btn-danger" onclick="confirmBlock()">🔨 Заблокировать</button>
     </div>
-</div>
 
-<div id="toast"></div>
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-header"><h2>Детали товара</h2><button onclick="closeDetail()">✖</button></div>
+        <div class="modal-content" id="detailContent"></div>
+    </div>
+
+    <!-- My Items Modal -->
+    <div id="myItemsModal" class="modal">
+        <div class="modal-header"><h2>📦 Мои товары</h2><button onclick="closeMyItems()">✖</button></div>
+        <div class="modal-content" id="myItemsList"></div>
+    </div>
+
+    <!-- Favorites Modal -->
+    <div id="favoritesModal" class="modal">
+        <div class="modal-header"><h2>❤️ Избранное</h2><button onclick="closeFavorites()">✖</button></div>
+        <div class="modal-content" id="favoritesList"></div>
+    </div>
+
+    <!-- Chats Modal -->
+    <div id="chatsModal" class="modal">
+        <div class="modal-header"><h2>💬 Чаты</h2><button onclick="closeChats()">✖</button></div>
+        <div class="modal-content" id="chatsList"></div>
+    </div>
+
+    <!-- Chat Detail Modal -->
+    <div id="chatDetailModal" class="modal">
+        <div class="modal-header"><h2>Чат</h2><button onclick="closeChatDetail()">✖</button></div>
+        <div class="modal-content" id="chatDetailContent"></div>
+    </div>
+
+    <!-- Referrals Modal -->
+    <div id="referralsModal" class="modal">
+        <div class="modal-header"><h2>👥 Реферальная программа</h2><button onclick="closeReferrals()">✖</button></div>
+        <div class="modal-content">
+            <div style="background:linear-gradient(135deg, var(--gold), #e67e22); padding:20px; border-radius:16px; text-align:center; margin-bottom:20px;">
+                <div style="font-size:32px; font-weight:800;">+15 ⭐</div>
+                <div>за каждого приглашённого друга</div>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+                <label>Ваша реферальная ссылка</label>
+                <input type="text" id="referralLink" readonly style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); cursor:pointer;">
+            </div>
+            <div style="display:flex; gap:12px; margin-bottom:20px;">
+                <div style="flex:1; background:var(--chip); padding:12px; border-radius:12px; text-align:center;">
+                    <div id="referralCount" style="font-size:24px; font-weight:800;">0</div>
+                    <div>Приглашено</div>
+                </div>
+                <div style="flex:1; background:var(--chip); padding:12px; border-radius:12px; text-align:center;">
+                    <div id="referralEarned" style="font-size:24px; font-weight:800;">0</div>
+                    <div>Заработано ⭐</div>
+                </div>
+            </div>
+            <h3>Ваши рефералы</h3>
+            <div id="referralList"></div>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="modal">
+        <div class="modal-header"><h2>🛠 Админ-панель</h2><button onclick="closeAdmin()">✖</button></div>
+        <div class="modal-content">
+            <div id="adminStats" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;"></div>
+            <h3>⏳ На модерации</h3>
+            <div id="moderationListAdmin"></div>
+            <h3>👥 Пользователи</h3>
+            <div id="usersListAdmin"></div>
+        </div>
+    </div>
+
+    <!-- Moderate Modal -->
+    <div id="moderateModal" class="modal">
+        <div class="modal-header"><h2>Модерация товара</h2><button onclick="closeModerate()">✖</button></div>
+        <div class="modal-content">
+            <div id="moderateContent"></div>
+            <div style="margin:16px 0;">
+                <label>Причина отказа (если отклоняете)</label>
+                <textarea id="rejectReason" rows="3" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:8px;"></textarea>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button class="btn btn-primary" onclick="approveItem()">✅ Одобрить</button>
+                <button class="btn btn-danger" onclick="rejectItemWithReason()">❌ Отклонить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Block Modal -->
+    <div id="blockModal" class="modal">
+        <div class="modal-header"><h2>Блокировка пользователя</h2><button onclick="closeBlock()">✖</button></div>
+        <div class="modal-content">
+            <div id="blockUserInfo"></div>
+            <div style="margin:16px 0;">
+                <label>Причина блокировки</label>
+                <textarea id="blockReason" rows="3" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:8px;"></textarea>
+            </div>
+            <button class="btn btn-danger" onclick="confirmBlock()">🔨 Заблокировать</button>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+</div>
 
 <script>
     // ---------- Telegram WebApp ----------
