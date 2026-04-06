@@ -6,7 +6,6 @@
     <title>Авито Видное — Marketplace</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* ---------- FULL-SCREEN OPTIMIZATION ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -24,18 +23,19 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             font-size: 14px;
             line-height: 1.5;
-            padding-bottom: 80px;          /* space for FAB */
             transition: background 0.3s;
             overflow-x: hidden;
-            min-height: 100%;
             display: flex;
             flex-direction: column;
         }
-        /* ensure all content stretches properly */
-        .app-content {
+        /* контейнер для всего контента */
+        .app-wrapper {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 80px; /* место под FAB */
         }
-        /* ---------- EXISTING STYLES (unchanged, just moved inside) ---------- */
+        /* ---------- ОСТАЛЬНЫЕ СТИЛИ (БЕЗ ИЗМЕНЕНИЙ) ---------- */
         :root {
             --bg: #f4f4f7;
             --card: #ffffff;
@@ -149,6 +149,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
+            flex: 1;
         }
         .card {
             background: var(--card);
@@ -488,9 +489,7 @@
     </style>
 </head>
 <body>
-
-<!-- wrap all content inside a flexible container -->
-<div style="flex: 1; display: flex; flex-direction: column;">
+<div class="app-wrapper">
     <header>
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="Поиск на Маркете..." oninput="doSearch()">
