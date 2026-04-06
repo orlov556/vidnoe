@@ -12,30 +12,6 @@
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            font-size: 14px;
-            line-height: 1.5;
-            transition: background 0.3s;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        /* контейнер для всего контента */
-        .app-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding-bottom: 80px; /* место под FAB */
-        }
-        /* ---------- ОСТАЛЬНЫЕ СТИЛИ (БЕЗ ИЗМЕНЕНИЙ) ---------- */
         :root {
             --bg: #f4f4f7;
             --card: #ffffff;
@@ -58,6 +34,13 @@
             --accent-soft: #1c2c3e;
             --border: #3a3a3c;
             --chip: #3a3a3c;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding-bottom: 80px;
+            transition: background 0.3s;
         }
         .blocked-screen {
             position: fixed;
@@ -149,7 +132,6 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
-            flex: 1;
         }
         .card {
             background: var(--card);
@@ -489,198 +471,192 @@
     </style>
 </head>
 <body>
-<div class="app-wrapper">
-    <header>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Поиск на Маркете..." oninput="doSearch()">
-        </div>
-        <div class="profile" id="profileIcon" onclick="toggleMenu()">👤</div>
-    </header>
 
-    <div id="filterRow"></div>
-    <div class="feed" id="feed"></div>
-    <div class="fab" onclick="openAdd()">+</div>
-
-    <div class="menu" id="menu">
-        <div class="menu-user">
-            <div class="profile" id="menuAvatar" style="width:50px; height:50px; font-size:24px;">👤</div>
-            <div>
-                <div id="menuName" style="font-weight:800; font-size:18px;">Загрузка...</div>
-                <div id="menuLogin" style="color:var(--text-light); font-size:14px;">@user</div>
-            </div>
-        </div>
-        <div class="menu-item" onclick="showStars()">⭐ Баланс: <span id="menuStars">0</span></div>
-        <div class="menu-item" onclick="showMyItems()">📦 Мои товары (<span id="menuMyItems">0</span>)</div>
-        <div class="menu-item" onclick="showFavorites()">❤️ Избранное (<span id="menuFav">0</span>)</div>
-        <div class="menu-item" onclick="showChats()">💬 Сообщения (<span id="menuChats">0</span>)</div>
-        <div class="menu-item" onclick="showReferrals()">👥 Пригласить друзей</div>
-        <div class="menu-item" onclick="toggleTheme()">
-            <div class="theme-switch-wrapper">
-                <span>🌓 Сменить тему</span>
-                <div class="theme-switch"></div>
-            </div>
-        </div>
-        <div class="menu-item" id="adminMenuItem" style="display:none; color:var(--gold);" onclick="showAdmin()">🛠 Админ-панель</div>
-        <div class="btn btn-outline" style="margin-top: 20px;" onclick="closeMenu()">Закрыть</div>
+<header>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Поиск на Маркете..." oninput="doSearch()">
     </div>
+    <div class="profile" id="profileIcon" onclick="toggleMenu()">👤</div>
+</header>
 
-    <!-- Stars Modal -->
-    <div id="starsModal" class="modal">
-        <div class="modal-header"><h2>⭐ Пополнение баланса</h2><button onclick="closeStars()">✖</button></div>
-        <div class="modal-content">
-            <div class="stars-card">
-                <div class="stars-amount" id="starsAmount">0</div>
-                <div class="stars-label">доступно Stars</div>
-            </div>
-            <div class="payment-options">
-                <button class="btn btn-primary" onclick="buyStarsTelegram(50)">50 ⭐ (Telegram)</button>
-                <button class="btn btn-outline" onclick="buyStarsCrypto(50)">50 ⭐ (Crypto)</button>
-            </div>
-            <div class="payment-options">
-                <button class="btn btn-primary" onclick="buyStarsTelegram(100)">100 ⭐ (Telegram)</button>
-                <button class="btn btn-outline" onclick="buyStarsCrypto(100)">100 ⭐ (Crypto)</button>
-            </div>
-            <div class="payment-options">
-                <button class="btn btn-primary" onclick="buyStarsTelegram(200)">200 ⭐ (Telegram)</button>
-                <button class="btn btn-outline" onclick="buyStarsCrypto(200)">200 ⭐ (Crypto)</button>
-            </div>
-            <div class="payment-options">
-                <button class="btn btn-primary" onclick="buyStarsTelegram(500)">500 ⭐ (Telegram)</button>
-                <button class="btn btn-outline" onclick="buyStarsCrypto(500)">500 ⭐ (Crypto)</button>
-            </div>
-            <div class="custom-input">
-                <input type="number" id="customStars" placeholder="Своё число">
-                <button class="btn btn-primary" style="width:auto; padding:12px 24px;" onclick="buyStarsTelegramCustom()">Купить (Telegram)</button>
-                <button class="btn btn-outline" style="width:auto; padding:12px 24px;" onclick="buyStarsCryptoCustom()">Купить (Crypto)</button>
-            </div>
-            <div id="starsHistory" style="margin-top:20px;"></div>
+<div id="filterRow"></div>
+<div class="feed" id="feed"></div>
+<div class="fab" onclick="openAdd()">+</div>
+
+<div class="menu" id="menu">
+    <div class="menu-user">
+        <div class="profile" id="menuAvatar" style="width:50px; height:50px; font-size:24px;">👤</div>
+        <div>
+            <div id="menuName" style="font-weight:800; font-size:18px;">Загрузка...</div>
+            <div id="menuLogin" style="color:var(--text-light); font-size:14px;">@user</div>
         </div>
     </div>
-
-    <!-- Add Modal -->
-    <div id="addModal" class="modal">
-        <div class="modal-header"><h2 id="modalTitle">Новое объявление</h2><button onclick="closeAdd()">✖</button></div>
-        <div class="modal-content">
-            <input type="text" id="addTitle" placeholder="Название" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);">
-            <select id="addCategory" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);"></select>
-            <input type="number" id="addPrice" placeholder="Цена (₽)" min="1" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);">
-            <textarea id="addDesc" placeholder="Описание" style="width:100%; height:100px; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);"></textarea>
-            <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
-                📸 Загрузить фото
-                <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
-                <img id="photoPreview" class="photo-preview">
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--chip); padding:12px; border-radius:12px; margin-bottom:16px;">
-                <span>⭐ Премиум продвижение (15 ⭐)</span>
-                <div id="premiumSwitch" style="width:40px; height:20px; background:#ccc; border-radius:10px; position:relative; cursor:pointer;" onclick="togglePremium()">
-                    <div style="width:16px; height:16px; background:white; border-radius:50%; position:absolute; top:2px; left:2px; transition:0.3s;"></div>
-                </div>
-                <input type="hidden" id="addPremium" value="0">
-            </div>
-            <button class="btn btn-primary" onclick="submitItem()">Опубликовать</button>
+    <div class="menu-item" onclick="showStars()">⭐ Баланс: <span id="menuStars">0</span></div>
+    <div class="menu-item" onclick="showMyItems()">📦 Мои товары (<span id="menuMyItems">0</span>)</div>
+    <div class="menu-item" onclick="showFavorites()">❤️ Избранное (<span id="menuFav">0</span>)</div>
+    <div class="menu-item" onclick="showChats()">💬 Сообщения (<span id="menuChats">0</span>)</div>
+    <div class="menu-item" onclick="showReferrals()">👥 Пригласить друзей</div>
+    <div class="menu-item" onclick="toggleTheme()">
+        <div class="theme-switch-wrapper">
+            <span>🌓 Сменить тему</span>
+            <div class="theme-switch"></div>
         </div>
     </div>
-
-    <!-- Detail Modal -->
-    <div id="detailModal" class="modal">
-        <div class="modal-header"><h2>Детали товара</h2><button onclick="closeDetail()">✖</button></div>
-        <div class="modal-content" id="detailContent"></div>
-    </div>
-
-    <!-- My Items Modal -->
-    <div id="myItemsModal" class="modal">
-        <div class="modal-header"><h2>📦 Мои товары</h2><button onclick="closeMyItems()">✖</button></div>
-        <div class="modal-content" id="myItemsList"></div>
-    </div>
-
-    <!-- Favorites Modal -->
-    <div id="favoritesModal" class="modal">
-        <div class="modal-header"><h2>❤️ Избранное</h2><button onclick="closeFavorites()">✖</button></div>
-        <div class="modal-content" id="favoritesList"></div>
-    </div>
-
-    <!-- Chats Modal -->
-    <div id="chatsModal" class="modal">
-        <div class="modal-header"><h2>💬 Чаты</h2><button onclick="closeChats()">✖</button></div>
-        <div class="modal-content" id="chatsList"></div>
-    </div>
-
-    <!-- Chat Detail Modal -->
-    <div id="chatDetailModal" class="modal">
-        <div class="modal-header"><h2>Чат</h2><button onclick="closeChatDetail()">✖</button></div>
-        <div class="modal-content" id="chatDetailContent"></div>
-    </div>
-
-    <!-- Referrals Modal -->
-    <div id="referralsModal" class="modal">
-        <div class="modal-header"><h2>👥 Реферальная программа</h2><button onclick="closeReferrals()">✖</button></div>
-        <div class="modal-content">
-            <div style="background:linear-gradient(135deg, var(--gold), #e67e22); padding:20px; border-radius:16px; text-align:center; margin-bottom:20px;">
-                <div style="font-size:32px; font-weight:800;">+15 ⭐</div>
-                <div>за каждого приглашённого друга</div>
-            </div>
-            <div class="form-group" style="margin-bottom:16px;">
-                <label>Ваша реферальная ссылка</label>
-                <input type="text" id="referralLink" readonly style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); cursor:pointer;">
-            </div>
-            <div style="display:flex; gap:12px; margin-bottom:20px;">
-                <div style="flex:1; background:var(--chip); padding:12px; border-radius:12px; text-align:center;">
-                    <div id="referralCount" style="font-size:24px; font-weight:800;">0</div>
-                    <div>Приглашено</div>
-                </div>
-                <div style="flex:1; background:var(--chip); padding:12px; border-radius:12px; text-align:center;">
-                    <div id="referralEarned" style="font-size:24px; font-weight:800;">0</div>
-                    <div>Заработано ⭐</div>
-                </div>
-            </div>
-            <h3>Ваши рефералы</h3>
-            <div id="referralList"></div>
-        </div>
-    </div>
-
-    <!-- Admin Modal -->
-    <div id="adminModal" class="modal">
-        <div class="modal-header"><h2>🛠 Админ-панель</h2><button onclick="closeAdmin()">✖</button></div>
-        <div class="modal-content">
-            <div id="adminStats" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;"></div>
-            <h3>⏳ На модерации</h3>
-            <div id="moderationListAdmin"></div>
-            <h3>👥 Пользователи</h3>
-            <div id="usersListAdmin"></div>
-        </div>
-    </div>
-
-    <!-- Moderate Modal -->
-    <div id="moderateModal" class="modal">
-        <div class="modal-header"><h2>Модерация товара</h2><button onclick="closeModerate()">✖</button></div>
-        <div class="modal-content">
-            <div id="moderateContent"></div>
-            <div style="margin:16px 0;">
-                <label>Причина отказа (если отклоняете)</label>
-                <textarea id="rejectReason" rows="3" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:8px;"></textarea>
-            </div>
-            <div style="display:flex; gap:12px;">
-                <button class="btn btn-primary" onclick="approveItem()">✅ Одобрить</button>
-                <button class="btn btn-danger" onclick="rejectItemWithReason()">❌ Отклонить</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Block Modal -->
-    <div id="blockModal" class="modal">
-        <div class="modal-header"><h2>Блокировка пользователя</h2><button onclick="closeBlock()">✖</button></div>
-        <div class="modal-content">
-            <div id="blockUserInfo"></div>
-            <div style="margin:16px 0;">
-                <label>Причина блокировки</label>
-                <textarea id="blockReason" rows="3" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:8px;"></textarea>
-            </div>
-            <button class="btn btn-danger" onclick="confirmBlock()">🔨 Заблокировать</button>
-        </div>
-    </div>
-
-    <div id="toast"></div>
+    <div class="menu-item" id="adminMenuItem" style="display:none; color:var(--gold);" onclick="showAdmin()">🛠 Админ-панель</div>
+    <div class="btn btn-outline" style="margin-top: 20px;" onclick="closeMenu()">Закрыть</div>
 </div>
+
+<!-- Stars Modal -->
+<div id="starsModal" class="modal">
+    <div class="modal-header"><h2>⭐ Пополнение баланса</h2><button onclick="closeStars()">✖</button></div>
+    <div class="modal-content">
+        <div class="stars-card">
+            <div class="stars-amount" id="starsAmount">0</div>
+            <div class="stars-label">доступно Stars</div>
+        </div>
+        <div class="payment-options">
+            <button class="btn btn-primary" onclick="buyStarsTelegram(50)">50 ⭐ (Telegram)</button>
+        </div>
+        <div class="payment-options">
+            <button class="btn btn-primary" onclick="buyStarsTelegram(100)">100 ⭐ (Telegram)</button>
+        </div>
+        <div class="payment-options">
+            <button class="btn btn-primary" onclick="buyStarsTelegram(200)">200 ⭐ (Telegram)</button>
+        </div>
+        <div class="payment-options">
+            <button class="btn btn-primary" onclick="buyStarsTelegram(500)">500 ⭐ (Telegram)</button>
+        </div>
+        <div class="custom-input">
+            <input type="number" id="customStars" placeholder="Своё число">
+            <button class="btn btn-primary" style="width:auto; padding:12px 24px;" onclick="buyStarsTelegramCustom()">Купить (Telegram)</button>
+        </div>
+        <div id="starsHistory" style="margin-top:20px;"></div>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div id="addModal" class="modal">
+    <div class="modal-header"><h2 id="modalTitle">Новое объявление</h2><button onclick="closeAdd()">✖</button></div>
+    <div class="modal-content">
+        <input type="text" id="addTitle" placeholder="Название" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);">
+        <select id="addCategory" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);"></select>
+        <input type="number" id="addPrice" placeholder="Цена (₽)" min="1" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);">
+        <textarea id="addDesc" placeholder="Описание" style="width:100%; height:100px; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid var(--border);"></textarea>
+        <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
+            📸 Загрузить фото
+            <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+            <img id="photoPreview" class="photo-preview">
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--chip); padding:12px; border-radius:12px; margin-bottom:16px;">
+            <span>⭐ Премиум продвижение (15 ⭐)</span>
+            <div id="premiumSwitch" style="width:40px; height:20px; background:#ccc; border-radius:10px; position:relative; cursor:pointer;" onclick="togglePremium()">
+                <div style="width:16px; height:16px; background:white; border-radius:50%; position:absolute; top:2px; left:2px; transition:0.3s;"></div>
+            </div>
+            <input type="hidden" id="addPremium" value="0">
+        </div>
+        <button class="btn btn-primary" onclick="submitItem()">Опубликовать</button>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detailModal" class="modal">
+    <div class="modal-header"><h2>Детали товара</h2><button onclick="closeDetail()">✖</button></div>
+    <div class="modal-content" id="detailContent"></div>
+</div>
+
+<!-- My Items Modal -->
+<div id="myItemsModal" class="modal">
+    <div class="modal-header"><h2>📦 Мои товары</h2><button onclick="closeMyItems()">✖</button></div>
+    <div class="modal-content" id="myItemsList"></div>
+</div>
+
+<!-- Favorites Modal -->
+<div id="favoritesModal" class="modal">
+    <div class="modal-header"><h2>❤️ Избранное</h2><button onclick="closeFavorites()">✖</button></div>
+    <div class="modal-content" id="favoritesList"></div>
+</div>
+
+<!-- Chats Modal -->
+<div id="chatsModal" class="modal">
+    <div class="modal-header"><h2>💬 Чаты</h2><button onclick="closeChats()">✖</button></div>
+    <div class="modal-content" id="chatsList"></div>
+</div>
+
+<!-- Chat Detail Modal -->
+<div id="chatDetailModal" class="modal">
+    <div class="modal-header"><h2>Чат</h2><button onclick="closeChatDetail()">✖</button></div>
+    <div class="modal-content" id="chatDetailContent"></div>
+</div>
+
+<!-- Referrals Modal -->
+<div id="referralsModal" class="modal">
+    <div class="modal-header"><h2>👥 Реферальная программа</h2><button onclick="closeReferrals()">✖</button></div>
+    <div class="modal-content">
+        <div style="background:linear-gradient(135deg, var(--gold), #e67e22); padding:20px; border-radius:16px; text-align:center; margin-bottom:20px;">
+            <div style="font-size:32px; font-weight:800;">+15 ⭐</div>
+            <div>за каждого приглашённого друга</div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+            <label>Ваша реферальная ссылка</label>
+            <input type="text" id="referralLink" readonly style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); cursor:pointer;">
+        </div>
+        <div style="display:flex; gap:12px; margin-bottom:20px;">
+            <div style="flex:1; background:var(--chip); padding:12px; border-radius:12px; text-align:center;">
+                <div id="referralCount" style="font-size:24px; font-weight:800;">0</div>
+                <div>Приглашено</div>
+            </div>
+            <div style="flex:1; background:var(--chip); padding:12px; border-radius:12px; text-align:center;">
+                <div id="referralEarned" style="font-size:24px; font-weight:800;">0</div>
+                <div>Заработано ⭐</div>
+            </div>
+        </div>
+        <h3>Ваши рефералы</h3>
+        <div id="referralList"></div>
+    </div>
+</div>
+
+<!-- Admin Modal -->
+<div id="adminModal" class="modal">
+    <div class="modal-header"><h2>🛠 Админ-панель</h2><button onclick="closeAdmin()">✖</button></div>
+    <div class="modal-content">
+        <div id="adminStats" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;"></div>
+        <h3>⏳ На модерации</h3>
+        <div id="moderationListAdmin"></div>
+        <h3>👥 Пользователи</h3>
+        <div id="usersListAdmin"></div>
+    </div>
+</div>
+
+<!-- Moderate Modal -->
+<div id="moderateModal" class="modal">
+    <div class="modal-header"><h2>Модерация товара</h2><button onclick="closeModerate()">✖</button></div>
+    <div class="modal-content">
+        <div id="moderateContent"></div>
+        <div style="margin:16px 0;">
+            <label>Причина отказа (если отклоняете)</label>
+            <textarea id="rejectReason" rows="3" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:8px;"></textarea>
+        </div>
+        <div style="display:flex; gap:12px;">
+            <button class="btn btn-primary" onclick="approveItem()">✅ Одобрить</button>
+            <button class="btn btn-danger" onclick="rejectItemWithReason()">❌ Отклонить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Block Modal -->
+<div id="blockModal" class="modal">
+    <div class="modal-header"><h2>Блокировка пользователя</h2><button onclick="closeBlock()">✖</button></div>
+    <div class="modal-content">
+        <div id="blockUserInfo"></div>
+        <div style="margin:16px 0;">
+            <label>Причина блокировки</label>
+            <textarea id="blockReason" rows="3" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:8px;"></textarea>
+        </div>
+        <button class="btn btn-danger" onclick="confirmBlock()">🔨 Заблокировать</button>
+    </div>
+</div>
+
+<div id="toast"></div>
 
 <script>
     // ---------- Telegram WebApp ----------
@@ -693,6 +669,7 @@
     const SYSTEM_USER_ID = 'system_avito';
     const SYSTEM_USER_NAME = 'Авито Видное';
     const SYSTEM_AVATAR = '📢';
+    const BOT_USERNAME = 'Avito_Vidnoe_bot';  // юзернейм вашего бота (без @)
 
     const CATEGORIES = [
         {id:'auto', name:'🚗 Авто'}, {id:'re', name:'🏠 Недвижимость'},
@@ -737,6 +714,7 @@
         localStorage.setItem('avito_users', JSON.stringify(users));
     }
 
+    // Системный пользователь
     if (!users[SYSTEM_USER_ID]) {
         users[SYSTEM_USER_ID] = {
             id: SYSTEM_USER_ID,
@@ -754,11 +732,33 @@
     let chats = JSON.parse(localStorage.getItem(`avito_chats_${userId}`)) || [];
     let transactions = JSON.parse(localStorage.getItem(`avito_trans_${userId}`)) || [];
 
+    // Создаём системный чат
     let systemChat = chats.find(c => c.with === SYSTEM_USER_ID);
     if (!systemChat) {
         systemChat = { id: Date.now(), with: SYSTEM_USER_ID, withName: SYSTEM_USER_NAME, withAvatar: SYSTEM_AVATAR, messages: [] };
         chats.push(systemChat);
         localStorage.setItem(`avito_chats_${userId}`, JSON.stringify(chats));
+    }
+
+    // Обработка реферальной ссылки (только для новых пользователей)
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode && refCode !== userId && !currentUser.referrer && !users[refCode]?.referrals?.some(r => r.id === userId)) {
+        // Начисляем звёзды пригласившему, только если пользователь новый (только что создан)
+        if (!users[userId]?.referrer) {
+            currentUser.referrer = refCode;
+            if (users[refCode]) {
+                users[refCode].stars += 15;
+                if (!users[refCode].referrals) users[refCode].referrals = [];
+                users[refCode].referrals.push({ id: userId, name: currentUser.name, avatar: currentUser.avatar, date: new Date().toLocaleDateString() });
+                // Добавляем транзакцию пригласившему
+                let refTransactions = JSON.parse(localStorage.getItem(`avito_trans_${refCode}`) || '[]');
+                refTransactions.unshift({ id: Date.now(), amount: 15, desc: `Реферал: ${currentUser.name}`, date: new Date().toLocaleDateString() });
+                localStorage.setItem(`avito_trans_${refCode}`, JSON.stringify(refTransactions));
+                toast('🎉 +15 ⭐ за приглашение!');
+                saveData();
+            }
+        }
     }
 
     if (currentUser.status === 'blocked') {
@@ -817,76 +817,43 @@
         localStorage.setItem(`avito_chats_${targetUserId}`, JSON.stringify(userChats));
     }
 
-    // ---------- ОПЛАТА TELEGRAM STARS ----------
+    // ---------- ОПЛАТА TELEGRAM STARS (реальная) ----------
     let pendingStarsPayment = false;
     function buyStarsTelegram(amount) {
         if (pendingStarsPayment) { toast('⏳ Оплата уже обрабатывается'); return; }
         pendingStarsPayment = true;
-        tg.sendInvoice(`Покупка ${amount} Stars`, `Пополнение баланса`, `stars_${userId}_${amount}_${Date.now()}`, "", "XTR", [{ label: `${amount} Stars`, amount: amount }]);
-        tg.onEvent('invoiceClosed', (invoice) => {
+        const invoiceId = `stars_${userId}_${amount}_${Date.now()}`;
+        try {
+            tg.sendInvoice(
+                `Покупка ${amount} Stars`,
+                `Пополнение баланса для продвижения объявлений`,
+                invoiceId,
+                "",
+                "XTR",
+                [{ label: `${amount} Stars`, amount: amount }]
+            );
+            tg.onEvent('invoiceClosed', (invoice) => {
+                pendingStarsPayment = false;
+                if (invoice.status === 'paid') {
+                    currentUser.stars += amount;
+                    transactions.unshift({ desc: `Покупка ${amount} ⭐ (Telegram)`, date: new Date().toLocaleDateString(), amount });
+                    saveData(); updateUI();
+                    sendSystemNotification(userId, `💰 Пополнение баланса: +${amount} ⭐. Новый баланс: ${currentUser.stars} ⭐`);
+                    toast(`✅ +${amount} ⭐ успешно зачислено!`);
+                    closeStars();
+                } else if (invoice.status === 'failed') {
+                    toast('❌ Ошибка оплаты. Попробуйте позже или обратитесь к администратору');
+                } else if (invoice.status === 'cancelled') {
+                    toast('❌ Оплата отменена');
+                }
+            });
+        } catch (err) {
             pendingStarsPayment = false;
-            if (invoice.status === 'paid') {
-                currentUser.stars += amount;
-                transactions.unshift({ desc: `Покупка ${amount} ⭐ (Telegram)`, date: new Date().toLocaleDateString(), amount });
-                saveData(); updateUI();
-                sendSystemNotification(userId, `💰 Пополнение баланса: +${amount} ⭐. Новый баланс: ${currentUser.stars} ⭐`);
-                toast(`✅ +${amount} ⭐ успешно зачислено!`);
-                closeStars();
-            } else if (invoice.status === 'failed') toast('❌ Ошибка оплаты');
-            else if (invoice.status === 'cancelled') toast('❌ Оплата отменена');
-        });
+            toast('❌ Ошибка инициализации платежа. Убедитесь, что бот настроен на приём платежей');
+            console.error(err);
+        }
     }
     function buyStarsTelegramCustom() { let a = parseInt(document.getElementById('customStars').value); if (a > 0 && a <= 5000) buyStarsTelegram(a); else toast('❌ Введите число от 1 до 5000'); }
-
-    // ---------- ОПЛАТА CRYPTO BOT ----------
-    async function buyStarsCrypto(amount) {
-        const rub = Math.ceil(amount * 1.4);
-        try {
-            const res = await fetch('/create-invoice', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: rub, asset: 'RUB', userId, stars: amount })
-            });
-            const data = await res.json();
-            if (data.ok && data.invoice_url) {
-                localStorage.setItem(`pending_crypto_${userId}`, JSON.stringify({ invoice_id: data.invoice_id, stars: amount }));
-                tg.openTelegramLink(data.invoice_url);
-                toast('💸 Оплата в CryptoBot. После оплаты нажмите "Проверить оплату"');
-                showCryptoCheckButton();
-            } else toast('❌ Ошибка создания счёта');
-        } catch (err) { toast('❌ Сервер недоступен'); }
-    }
-    function buyStarsCryptoCustom() { let a = parseInt(document.getElementById('customStars').value); if (a > 0 && a <= 5000) buyStarsCrypto(a); else toast('❌ Введите число от 1 до 5000'); }
-    function showCryptoCheckButton() {
-        const modalContent = document.querySelector('#starsModal .modal-content');
-        let existing = document.getElementById('cryptoCheckBtn');
-        if (existing) existing.remove();
-        const btn = document.createElement('button');
-        btn.id = 'cryptoCheckBtn';
-        btn.className = 'btn btn-outline';
-        btn.innerText = '🔄 Проверить оплату';
-        btn.style.marginTop = '10px';
-        btn.onclick = checkCryptoPayment;
-        modalContent.appendChild(btn);
-    }
-    async function checkCryptoPayment() {
-        const pending = localStorage.getItem(`pending_crypto_${userId}`);
-        if (!pending) { toast('Нет активной оплаты'); return; }
-        const { invoice_id, stars } = JSON.parse(pending);
-        try {
-            const res = await fetch('/check-invoice', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ invoice_id }) });
-            const data = await res.json();
-            if (data.status === 'paid') {
-                currentUser.stars += stars;
-                transactions.unshift({ desc: `Покупка ${stars} ⭐ (Crypto)`, date: new Date().toLocaleDateString(), amount: stars });
-                saveData(); updateUI();
-                toast(`✅ +${stars} ⭐ зачислено!`);
-                localStorage.removeItem(`pending_crypto_${userId}`);
-                document.getElementById('cryptoCheckBtn')?.remove();
-                closeStars();
-            } else toast('⏳ Оплата ещё не получена');
-        } catch (err) { toast('❌ Ошибка проверки'); }
-    }
 
     // ---------- РЕНДЕР ЛЕНТЫ ----------
     let currentCat = 'all', currentSearch = '';
@@ -1045,7 +1012,8 @@
     function closeChats() { document.getElementById('chatsModal').classList.remove('active'); }
 
     function showReferrals() {
-        const refLink = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
+        // Формируем ссылку с юзернеймом бота
+        const refLink = `https://t.me/${BOT_USERNAME}?start=ref_${userId}`;
         document.getElementById('referralLink').value = refLink;
         document.getElementById('referralLink').onclick = function() { this.select(); navigator.clipboard.writeText(this.value); toast('✅ Ссылка скопирована'); };
         const referrals = currentUser.referrals || [];
